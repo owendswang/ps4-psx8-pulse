@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PSPULSE // PS4 11.00-13.00 HOST / VERSION</title>
+    <style>
+        :root {
+            --bg: #151515;
+            --panel: #1c1c1c;
+            --panel-2: #242424;
+            --line: #2e2e2e;
+            --line-bright: #454545;
+            --text: #f5f5f5;
+            --muted: #b5b5b5;
+            --dim: #828282;
+            --accent: #a294ff;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { background: var(--bg); }
+        html, body { min-height: 100%; }
+        body {
+            background-color: var(--bg);
+            background-image: linear-gradient(rgba(162, 148, 255, .05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(162, 148, 255, .05) 1px, transparent 1px);
+            background-size: 36px 36px;
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            font: 17px/1.4 Consolas, "Liberation Mono", monospace;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        a { color: inherit; }
+
+        .app { display: flex; flex: 1 0 auto; flex-direction: column; margin: 0 auto; padding: 14px 26px 12px; width: min(100% - 52px, 1220px); }
+
+        /* Top status bar */
+        .bar {
+            align-items: center;
+            border: 1px solid var(--line-bright);
+            display: flex;
+            font-size: 14px;
+            justify-content: space-between;
+            letter-spacing: .1em;
+            padding: 10px 16px;
+            text-transform: uppercase;
+        }
+        .bar b { color: var(--accent); font-weight: 400; }
+        .bar-fw { color: var(--dim); }
+        .bar-fw::before { color: var(--accent); content: "\25CF "; }
+
+        .layout { display: flex; flex: 1 0 auto; flex-direction: column; padding: 20px 0 0; }
+
+        /* Header */
+        .kicker { color: var(--accent); font-size: 14px; letter-spacing: .14em; margin: 0 0 12px; }
+        h1 { font-size: clamp(34px, 5vw, 56px); font-weight: 400; letter-spacing: -.07em; line-height: 1; margin: 0; }
+        h1 em { color: var(--accent); font-style: normal; }
+        .sub { color: var(--muted); font-size: 17px; margin: 13px 0 0; max-width: 720px; }
+        .boot { color: var(--dim); font-size: 14px; list-style: none; margin: 12px 0 0; }
+        .boot li { margin: 3px 0; }
+        .boot b { color: var(--accent); font-weight: 400; }
+
+        /* Version selection */
+        .menu { border: 1px solid var(--line); margin-top: 22px; padding: 14px; }
+        .menu-top {
+            align-items: baseline;
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 11px;
+            padding: 0 4px 10px;
+        }
+        .menu-title { color: var(--text); font-size: 15px; letter-spacing: .12em; text-transform: uppercase; }
+        .menu-hint { color: var(--dim); font-size: 13px; }
+        .version-grid { display: grid; gap: 8px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+        .version-card {
+            align-items: center;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            cursor: pointer;
+            display: flex;
+            min-height: 128px;
+            padding: 16px 18px;
+        }
+        .version-card:hover, .version-card:focus {
+            background: var(--panel-2);
+            border-color: var(--accent);
+            outline: 0;
+        }
+        .version-card:focus { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
+        .card-index { color: var(--dim); font-size: 15px; min-width: 44px; }
+        .version-card:hover .card-index, .version-card:focus .card-index { color: var(--accent); }
+        .version-badge { color: var(--dim); display: block; font-size: 12px; letter-spacing: .12em; margin-bottom: 6px; text-transform: uppercase; }
+        .version-card.latest .version-badge { color: var(--accent); }
+        .version-title { color: var(--text); font-size: 21px; line-height: 1.2; }
+        .version-number { color: var(--accent); font-size: 16px; }
+        .version-description { color: var(--muted); display: block; font-size: 13px; line-height: 1.5; margin-top: 7px; }
+        .card-action { color: var(--dim); font-size: 13px; margin-left: auto; padding-left: 12px; white-space: nowrap; }
+        .version-card:hover .card-action, .version-card:focus .card-action { color: var(--accent); }
+
+        /* NodePlay */
+        .nodeplay {
+            align-items: center;
+            background: var(--panel);
+            border: 1px solid var(--line-bright);
+            display: flex;
+            justify-content: space-between;
+            margin-top: 14px;
+            min-height: 68px;
+            padding: 10px 18px;
+            text-decoration: none;
+        }
+        .nodeplay:hover, .nodeplay:focus { background: var(--panel-2); border-color: var(--accent); outline: 0; }
+        .nodeplay:focus { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
+        .np-label { color: var(--dim); display: block; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; }
+        .np-name { color: var(--text); display: block; font-size: 24px; margin-top: 2px; }
+        .np-name b { color: var(--accent); font-weight: 400; }
+        .np-open { color: var(--accent); font-size: 14px; }
+
+        /* Footer */
+        .foot {
+            border-top: 1px solid var(--line);
+            color: var(--dim);
+            font-size: 13px;
+            margin-top: 16px;
+            padding: 12px 4px 2px;
+            text-align: center;
+        }
+        .foot a { color: var(--muted); }
+        .foot a:hover, .foot a:focus { color: var(--accent); }
+
+        @media (max-width: 760px) {
+            body { overflow: auto; }
+            .app { padding: 8px 10px; width: min(100% - 20px, 560px); }
+            .bar { font-size: 12px; padding: 8px 12px; }
+            .layout { padding-top: 14px; }
+            h1 { font-size: 38px; }
+            .sub { font-size: 16px; }
+            .version-grid { grid-template-columns: 1fr; }
+            .version-card { min-height: 104px; }
+            .menu-hint { display: none; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <header class="bar">
+            <span><b>PSPULSE</b> // ps4 hosts</span>
+            <span class="bar-fw">fw 11.00-13.00 ready</span>
+        </header>
+
+        <main class="layout">
+            <p class="kicker">$ select --payload</p>
+            <h1>Choose <em>version</em></h1>
+            <p class="sub">Select the payload version to cache and run with the SlopKit WebKit host.</p>
+            <ul class="boot">
+                <li>[ <b>ok</b> ] slopkit chain ready</li>
+                <li>[ <b>ok</b> ] 2 builds available</li>
+            </ul>
+
+            <section class="menu" aria-label="Payload versions">
+                <div class="menu-top">
+                    <span class="menu-title">Available versions</span>
+                    <span class="menu-hint">&uarr; &darr; move &nbsp; X select</span>
+                </div>
+                <div class="version-grid">
+                    <div class="version-card latest" onclick="selectVersion('v2.4b18.10')" tabindex="0"
+                        data-version="latest">
+                        <span class="card-index">01</span>
+                        <span>
+                            <span class="version-badge latest">Latest</span>
+                            <span class="version-title">Payload <span class="version-number">v2.4b18.10</span></span>
+                            <span class="version-description">Latest payload build with improved stability and compatibility. Recommended for most users.</span>
+                        </span>
+                        <span class="card-action">[ SELECT ]</span>
+                    </div>
+
+                    <div class="version-card" onclick="selectVersion('v2.4b18.5')" tabindex="0" data-version="stable">
+                        <span class="card-index">02</span>
+                        <span>
+                            <span class="version-badge">Stable</span>
+                            <span class="version-title">Payload <span class="version-number">v2.4b18.5</span></span>
+                            <span class="version-description">Previous stable payload build with proven reliability. Choose this if the latest version causes issues.</span>
+                        </span>
+                        <span class="card-action">[ SELECT ]</span>
+                    </div>
+                </div>
+            </section>
+
+            <a class="nodeplay" href="https://nodeplay.net/" target="_blank" rel="noopener">
+                <span><span class="np-label">Premium game servers</span><span class="np-name">Node<b>Play</b></span></span>
+                <span class="np-open">OPEN &#8599;</span>
+            </a>
+
+            <footer class="foot">
+                Author: <a href="https://t.me/sudoBlackArch">BlackArch</a> // Telegram: <a href="https://t.me/PlayStation_Pulse">PlayStation Pulse</a>
+            </footer>
+        </main>
+    </div>
+
+    <script>
+        function selectVersion(version) {
+            // Store the selected version in localStorage
+            localStorage.setItem('selectedSlopkitVersion', version);
+
+            // Redirect to the chosen host build
+            if (version === 'v2.4b18.10') {
+                window.location.href = 'latest/index.html';
+            } else if (version === 'v2.4b18.5') {
+                window.location.href = 'stable/index.html';
+            }
+        }
+
+        // Gamepad navigation
+        // Arrow keys are NOT intercepted: the PS4 browser moves its visible
+        // focus pointer natively. Cards are activated with X (Enter/Space).
+        var cards = document.querySelectorAll('.version-card');
+
+        // Handle X (Enter/Space) on focused cards
+        for (var cardIndex = 0; cardIndex < cards.length; cardIndex++) {
+            var card = cards[cardIndex];
+            card.addEventListener('keydown', function (event) {
+                var cardKey = event.key || event.keyCode;
+                if (cardKey === 'Enter' || cardKey === ' ' || cardKey === 13 || cardKey === 32) {
+                    event.preventDefault();
+                    this.click();
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>

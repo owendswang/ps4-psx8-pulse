@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en" manifest="PSPulse5.cache">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PSPULSE // PS4 7.00-8.52 HOST / CACHE / 2.4B18.5</title>
+    <script>history.replaceState(null, null, 'index5.html');</script>
+    <style>
+        :root {
+            --bg: #151515;
+            --panel: #1c1c1c;
+            --panel-2: #242424;
+            --line: #2e2e2e;
+            --line-bright: #454545;
+            --text: #f5f5f5;
+            --muted: #b5b5b5;
+            --dim: #828282;
+            --accent: #a294ff;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { background: var(--bg); }
+        html, body { min-height: 100%; }
+        body {
+            background-color: var(--bg);
+            background-image: linear-gradient(rgba(162, 148, 255, .05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(162, 148, 255, .05) 1px, transparent 1px);
+            background-size: 36px 36px;
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            font: 17px/1.4 Consolas, "Liberation Mono", monospace;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        a { color: inherit; }
+
+        .app { display: flex; flex: 1 0 auto; flex-direction: column; margin: 0 auto; padding: 14px 26px 12px; width: min(100% - 52px, 920px); }
+
+        /* Top status bar */
+        .bar {
+            align-items: center;
+            border: 1px solid var(--line-bright);
+            display: flex;
+            font-size: 14px;
+            justify-content: space-between;
+            letter-spacing: .1em;
+            padding: 10px 16px;
+            text-transform: uppercase;
+        }
+        .bar b { color: var(--accent); font-weight: 400; }
+        .bar-fw { color: var(--dim); }
+        .bar-fw::before { color: var(--accent); content: "\25CF "; }
+
+        .layout { display: flex; flex: 1 0 auto; flex-direction: column; justify-content: center; padding: 20px 0 0; }
+
+        .kicker { color: var(--accent); font-size: 14px; letter-spacing: .14em; margin: 0 0 12px; }
+        h1 { font-size: clamp(32px, 5vw, 52px); font-weight: 400; letter-spacing: -.07em; line-height: 1; margin: 0; }
+        h1 em { color: var(--accent); font-style: normal; }
+        .sub { color: var(--muted); font-size: 17px; margin: 13px 0 0; }
+        .boot { color: var(--dim); font-size: 14px; list-style: none; margin: 12px 0 0; }
+        .boot li { margin: 3px 0; }
+        .boot b { color: var(--accent); font-weight: 400; }
+
+        .progress-container { margin-top: 20px; width: 100%; }
+        .progress-label { color: var(--accent); font-size: 15px; margin-bottom: 10px; }
+        .progress-wrapper { background: var(--panel); border: 1px solid var(--line-bright); padding: 6px; }
+        .progress-bar { background: var(--panel-2); border: 1px solid var(--line); height: 62px; overflow: hidden; position: relative; }
+        .progress-fill { background: var(--accent); height: 100%; width: 0; }
+        .progress-text { color: var(--text); font-size: 20px; font-weight: 400; left: 50%; position: absolute; text-shadow: 0 1px 8px rgba(0, 0, 0, .8); top: 50%; transform: translate(-50%, -50%); z-index: 3; }
+        .status-message { color: var(--muted); font-size: 15px; margin-top: 12px; }
+
+        .foot {
+            border-top: 1px solid var(--line);
+            color: var(--dim);
+            font-size: 13px;
+            margin-top: 16px;
+            padding: 12px 4px 2px;
+            text-align: center;
+        }
+        .foot a { color: var(--muted); }
+        .foot a:hover, .foot a:focus { color: var(--accent); }
+
+        @media (max-width: 700px) {
+            body { overflow: auto; }
+            .app { padding: 8px 10px; width: min(100% - 20px, 560px); }
+            .bar { font-size: 12px; padding: 8px 12px; }
+            .layout { padding-top: 14px; }
+            h1 { font-size: 40px; }
+            .progress-bar { height: 56px; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <header class="bar">
+            <span><b>PSPULSE</b> // ps4 hosts</span>
+            <span class="bar-fw">cache update</span>
+        </header>
+
+        <main class="layout">
+            <p class="kicker">$ ./cache --install</p>
+            <h1>Loading <em>offline cache</em></h1>
+            <ul class="boot">
+                <li>[ <b>ok</b> ] psfree 1.7 chain ready</li>
+                <li>[ <b>..</b> ] downloading host files</li>
+            </ul>
+
+            <section class="progress-container">
+                <div class="progress-label" id="progress">Loading.. Please Wait !!!</div>
+                <div class="progress-wrapper">
+                    <div class="progress-bar" id="myProgress">
+                        <div class="progress-fill" id="myBar"></div>
+                        <div class="progress-text" id="progressText">0%</div>
+                    </div>
+                </div>
+                <div class="status-message">Initializing cache system...</div>
+            </section>
+        </main>
+
+        <footer class="foot">
+            Author: <a href="https://t.me/sudoBlackArch">BlackArch</a> // Telegram: <a href="https://t.me/PlayStation_Pulse">PlayStation Pulse</a>
+        </footer>
+    </div>
+
+    <script>
+if (window.applicationCache.status == 2) { localStorage.is755BCached = true; }
+        window.applicationCache.ondownloading = function () {
+            document.getElementById("progress").innerHTML = "Page Caching Started!!";
+            localStorage.is755BCached = false;
+        };
+        window.applicationCache.onprogress = function (a) {
+            const progress = Math.round(100 * (a.loaded / a.total));
+            document.getElementById("myBar").style.width = progress + "%";
+            document.getElementById("progressText").innerHTML = progress + "%";
+        };
+        window.applicationCache.oncached = function () {
+            document.getElementById("progress").innerHTML = "Page Cached Successfully!!!";
+            localStorage.is755BCached = true;
+            setTimeout(function () { window.location.reload("myBar"); }, 1500);
+        };
+        window.applicationCache.onupdateready = function () {
+            document.getElementById("progress").innerHTML = "Update Cache Successfully!!!";
+            localStorage.is755BCached = true;
+            setTimeout(function () { window.location.reload("myBar"); }, 1500);
+        };
+        window.applicationCache.onnoupdate = function () { window.location.replace("index5.html"); };
+        window.applicationCache.onerror = function () { window.location.replace("index5.html"); };
+
+        // Fallback progress animation
+        var width = 0;
+        function frame1() {
+            var elem = document.getElementById("myBar");
+            var text = document.getElementById("progressText");
+            var i = 0;
+            var id = setInterval(fra, 10);
+            function fra() {
+                if (i < 10 && width < 100) {
+                    width++;
+                    elem.style.width = width + "%";
+                    text.innerHTML = width + "%";
+                }
+                i++;
+            }
+        }
+    </script>
+</body>
+
+</html>

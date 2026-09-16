@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en" manifest="cache.manifest">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PSPULSE // PS4 11.00-13.00 HOST / 2.4B18.10</title>
+<style>
+    :root {
+        --bg: #151515;
+        --panel: #1c1c1c;
+        --panel-2: #242424;
+        --line: #2e2e2e;
+        --line-bright: #454545;
+        --text: #f5f5f5;
+        --muted: #b5b5b5;
+        --dim: #828282;
+        --accent: #a294ff;
+        --red: #ff9b9b;
+        --amber: #e1bd72;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { background: var(--bg); }
+    html, body { min-height: 100%; }
+    body {
+        background-color: var(--bg);
+        background-image: linear-gradient(rgba(162, 148, 255, .05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(162, 148, 255, .05) 1px, transparent 1px);
+        background-size: 36px 36px;
+        color: var(--text);
+        display: flex;
+        flex-direction: column;
+        font: 17px/1.4 Consolas, "Liberation Mono", monospace;
+        min-height: 100vh;
+        overflow-x: hidden;
+    }
+    a { color: inherit; }
+
+    .app { display: flex; flex: 1 0 auto; flex-direction: column; margin: 0 auto; padding: 14px 26px 12px; width: min(100% - 52px, 1220px); }
+
+    /* Top status bar */
+    .bar {
+        align-items: center;
+        border: 1px solid var(--line-bright);
+        display: flex;
+        font-size: 14px;
+        justify-content: space-between;
+        letter-spacing: .1em;
+        padding: 10px 16px;
+        text-transform: uppercase;
+    }
+    .bar b { color: var(--accent); font-weight: 400; }
+    .bar-fw { color: var(--dim); }
+    .bar-fw::before { color: var(--accent); content: "\25CF "; }
+
+    .layout { display: flex; flex: 1 0 auto; flex-direction: column; padding: 20px 0 0; }
+
+    /* Header */
+    .kicker { color: var(--accent); font-size: 14px; letter-spacing: .14em; margin: 0 0 12px; }
+    h1 { font-size: clamp(34px, 5vw, 56px); font-weight: 400; letter-spacing: -.07em; line-height: 1; margin: 0; }
+    h1 em { color: var(--accent); font-style: normal; }
+    .sub { color: var(--muted); font-size: 17px; margin: 13px 0 0; max-width: 720px; }
+    .boot { color: var(--dim); font-size: 14px; list-style: none; margin: 12px 0 0; }
+    .boot li { margin: 3px 0; }
+    .boot b { color: var(--accent); font-weight: 400; }
+
+    /* Router status */
+    .status {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        margin-top: 20px;
+        padding: 14px 16px;
+    }
+    #state { color: var(--accent); font-size: 22px; font-weight: 400; line-height: 1.25; margin: 0 0 10px; }
+    #det { color: var(--muted); font-size: 14px; margin: 0 0 6px; }
+    #det b { color: var(--text); font-weight: 400; }
+    #cache { color: var(--dim); font-size: 13px; margin: 0 0 10px; min-height: 16px; }
+    #cache.cacheok { color: var(--accent); }
+    .ok { color: var(--accent); }
+    .bad { color: var(--red); }
+    .warn { color: var(--amber); }
+    .notice { border-left: 2px solid var(--amber); color: var(--muted); font-size: 13px; margin-top: 12px; padding: 5px 10px; }
+    .notice b { color: var(--amber); font-weight: 400; }
+
+    /* NodePlay */
+    .nodeplay {
+        align-items: center;
+        background: var(--panel);
+        border: 1px solid var(--line-bright);
+        display: flex;
+        justify-content: space-between;
+        margin-top: 14px;
+        min-height: 68px;
+        padding: 10px 18px;
+        text-decoration: none;
+    }
+    .nodeplay:hover, .nodeplay:focus { background: var(--panel-2); border-color: var(--accent); outline: 0; }
+    .nodeplay:focus { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
+    .np-label { color: var(--dim); display: block; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; }
+    .np-name { color: var(--text); display: block; font-size: 24px; margin-top: 2px; }
+    .np-name b { color: var(--accent); font-weight: 400; }
+    .np-open { color: var(--accent); font-size: 14px; }
+
+    /* Footer */
+    .foot {
+        border-top: 1px solid var(--line);
+        color: var(--dim);
+        font-size: 13px;
+        margin-top: 16px;
+        padding: 12px 4px 2px;
+        text-align: center;
+    }
+    .foot a { color: var(--muted); }
+    .foot a:hover, .foot a:focus { color: var(--accent); }
+
+    @media (max-width: 760px) {
+        body { overflow: auto; }
+        .app { padding: 8px 10px; width: min(100% - 20px, 560px); }
+        .bar { font-size: 12px; padding: 8px 12px; }
+        .layout { padding-top: 14px; }
+        h1 { font-size: 38px; }
+        .sub { font-size: 16px; }
+        #state { font-size: 19px; }
+    }
+</style>
+</head>
+<body>
+    <div class="app">
+        <header class="bar">
+            <span><b>PSPULSE</b> // ps4 hosts</span>
+            <span class="bar-fw">fw 11.00-13.00 ready</span>
+        </header>
+
+        <main class="layout">
+            <p class="kicker">$ ./launch --slopkit</p>
+            <h1>SlopKit <em>11.00-13.00</em> host</h1>
+            <p class="sub">WebKit research host by PlayStation Pulse.</p>
+            <ul class="boot">
+                <li>[ <b>ok</b> ] webkit chain ready</li>
+                <li>[ <b>ok</b> ] offline cache ready</li>
+            </ul>
+
+            <section class="status" id="wrap">
+                <div id="state">detecting firmware...</div>
+                <div id="det"></div>
+                <div id="cache"></div>
+            </section>
+
+            <a class="nodeplay" href="https://nodeplay.net/" target="_blank" rel="noopener">
+                <span><span class="np-label">Premium game servers</span><span class="np-name">Node<b>Play</b></span></span>
+                <span class="np-open">OPEN &#8599;</span>
+            </a>
+
+            <footer class="foot">
+                Author: <a href="https://t.me/sudoBlackArch">BlackArch</a> // Telegram: <a href="https://t.me/PlayStation_Pulse">PlayStation Pulse</a>
+            </footer>
+        </main>
+    </div>
+
+<script>
+(function () {
+    var stateEl = document.getElementById("state");
+    var detEl = document.getElementById("det");
+    var cacheEl = document.getElementById("cache");
+    function setState(t, c) { stateEl.textContent = t; stateEl.className = c || ""; }
+    function setCache(t, ok) { cacheEl.textContent = t; cacheEl.className = ok ? "cacheok" : ""; }
+    function queryValue(name) {
+        var match = new RegExp("[?&]" + name + "=([^&]*)").exec(location.search);
+        return match ? decodeURIComponent(match[1]) : null;
+    }
+
+    var key = null, fwnum = null;
+    var m = /PlayStation\s+4[\/ ](\d+)\.(\d+)/.exec(navigator.userAgent);
+    if (m) {
+        var minor = parseInt(m[2], 16);
+        var ms = minor.toString(16);
+        if (ms.length < 2) ms = "0" + ms;
+        key = m[1] + "." + ms;
+        fwnum = parseInt(m[1], 10) * 100 + parseInt(ms, 10);
+    }
+
+    var bug = null, why = "";
+
+  // 11.01/11.02 are routed to the local CSSFontFace branch; this chain has no patch for them.
+  if (fwnum !== null && fwnum <= 1102 && fwnum !== 1100) {
+    window.location.replace("../../css/version-selector.html");
+    return;
+}
+
+    var forced = queryValue("bug");
+    if (forced === "lapse" || forced === "poops") {
+        bug = forced; why = "forced via ?bug=" + forced;
+    } else if (!key) {
+        why = "user-agent is not a PlayStation 4";
+    } else if (fwnum <= 1202) {
+        bug = "lapse"; why = key + " <= 12.02";
+    } else if (fwnum >= 1250) {
+        bug = "poops"; why = key + " >= 12.50";
+    } else {
+        why = key + " -- no working bug (lapse ends at 12.02, poops needs 12.50)";
+    }
+    detEl.innerHTML = "firmware <b>" + (key || "unknown") + "</b>"
+        + " &middot; bug <b>" + (bug || "none") + "</b> &middot; " + why;
+
+    if (!bug) { setState("UNSUPPORTED FIRMWARE", "bad"); return; }
+
+    var target = (bug === "lapse" ? "run_lapse.html" : "run_poops.html")
+        + location.search;
+    function go() { setState("loading " + bug + " chain...", "warn");
+                    location.replace(target); }
+
+    function waitForTap(msg, action) {
+        setState(msg, "warn");
+        function fire() {
+            window.removeEventListener("click", fire);
+            window.removeEventListener("keydown", fire);
+            action();
+        }
+        window.addEventListener("click", fire);
+        window.addEventListener("keydown", fire);
+    }
+
+    var ac = window.applicationCache;
+    if (!ac || !document.documentElement.hasAttribute("manifest")) {
+        go();
+    } else if (!navigator.onLine) {
+        setCache("offline -- from cache", true);
+        go();
+    } else if (ac.status === ac.IDLE) {
+        // Manifest revalidation is async and usually has NOT finished when
+        // this inline script runs. Launching now would race a background
+        // re-download of the whole host on update days (-> OOM mid-exploit).
+        // Wait briefly, then re-evaluate the real status.
+        setCache("cached -- verifying up to date...");
+        setTimeout(function () {
+            if (ac.status === ac.CHECKING || ac.status === ac.DOWNLOADING) {
+                setCache("update found -- downloading...");
+                waitForDownload();
+            } else if (ac.status === ac.UPDATEREADY) {
+                try { ac.swapCache(); } catch (e) {}
+                setCache("update downloaded", true);
+                waitForTap("UPDATE READY -- press X or tap to reload & run",
+                           function () { location.reload(); });
+            } else {
+                setCache("cached", true);
+                go();
+            }
+        }, 3000);
+    } else if (ac.status === ac.UPDATEREADY) {
+        try { ac.swapCache(); } catch (e) {}
+        setCache("update downloaded", true);
+        waitForTap("UPDATE READY -- press X or tap to reload & run",
+                   function () { location.reload(); });
+    } else {
+        waitForDownload();
+    }
+    function waitForDownload() {
+        setCache("checking cache...");
+        ac.addEventListener("downloading",
+            function () { setCache("caching for offline (first run)..."); }, false);
+        ac.addEventListener("progress", function (e) {
+            if (e && e.total)
+                setCache("caching " + Math.round((e.loaded / e.total) * 100) + "%");
+        }, false);
+
+        ac.addEventListener("cached", function () {
+            setCache("cached for offline use", true);
+            waitForTap("CACHED (first run) -- press X or tap to run", go);
+        }, false);
+        ac.addEventListener("updateready", function () {
+            try { ac.swapCache(); } catch (e) {}
+            setCache("update downloaded", true);
+            waitForTap("UPDATE READY -- press X or tap to reload & run",
+                       function () { location.reload(); });
+        }, false);
+
+        ac.addEventListener("noupdate", function () {
+            setCache("cached -- offline ready", true);
+            go();
+        }, false);
+        ac.addEventListener("error", function () {
+            setCache("cache unavailable");
+            waitForTap("CACHE FAILED -- press X or tap to run anyway", go);
+        }, false);
+        ac.addEventListener("obsolete", function () {
+            setCache("cache obsolete");
+            waitForTap("CACHE OBSOLETE -- press X or tap to run", go);
+        }, false);
+    }
+})();
+</script>
+</body>
+</html>
