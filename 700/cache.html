@@ -10,27 +10,27 @@
 * { box-sizing:border-box; margin:0; padding:0; }
         html { background:#050706; }
         html, body { min-height:100%; }
-        body { background-color:#050706; background-image:linear-gradient(rgba(115,245,166,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(115,245,166,.03) 1px,transparent 1px); background-size:32px 32px; color:#f1f6f2; display:flex; flex-direction:column; font:16px/1.5 "SFMono-Regular",Consolas,"Liberation Mono",monospace; min-height:100vh; overflow:hidden; }
+        body { background-color:#050706; background-image:linear-gradient(rgba(115,245,166,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(115,245,166,.03) 1px,transparent 1px); background-size:32px 32px; color:#f5f5f5; display:flex; flex-direction:column; font:16px/1.5 "SFMono-Regular",Consolas,"Liberation Mono",monospace; min-height:100vh; overflow:hidden; }
         .container { display:flex; flex:1 0 auto; flex-direction:column; justify-content:center; margin:0 auto; padding:24px 0; width: calc(100% - 64px); max-width: 920px; }
-        .logo-section { background:rgba(8,12,10,.92); border:1px solid #34443a; margin:0 auto 16px; padding:24px 28px 26px; position:relative; width:100%; }
-        .logo-section::before { color:#73f5a6; content:"●  PS4 / PSFREE HOST"; display:block; font-size:13px; letter-spacing:.12em; margin-bottom:18px; }
-        .logo-section::after { color:#86958b; content:"SYS / CACHE UPDATE"; font-size:12px; letter-spacing:.08em; position:absolute; right:28px; top:25px; }
-        .main-title { color:#f1f6f2; font-size:52px; font-weight:400; letter-spacing:-.07em; line-height:1.05; }
-        .main-title::before { color:#73f5a6; content:"> "; }
-        .subtitle { color:#73f5a6; font-size:17px; letter-spacing:.08em; margin-top:14px; }
+        .logo-section { background:rgba(8,12,10,.92); border:1px solid #454545; margin:0 auto 16px; padding:24px 28px 26px; position:relative; width:100%; }
+        .logo-section::before { color:#a294ff; content:"●  PS4 / PSFREE HOST"; display:block; font-size:13px; letter-spacing:.12em; margin-bottom:18px; }
+        .logo-section::after { color:#828282; content:"SYS / CACHE UPDATE"; font-size:12px; letter-spacing:.08em; position:absolute; right:28px; top:25px; }
+        .main-title { color:#f5f5f5; font-size:52px; font-weight:400; letter-spacing:-.07em; line-height:1.05; }
+        .main-title::before { color:#a294ff; content:"> "; }
+        .subtitle { color:#a294ff; font-size:17px; letter-spacing:.08em; margin-top:14px; }
         .progress-container { margin:0 auto; width:100%; }
-        .progress-label { color:#73f5a6; font-size:15px; margin-bottom:10px; }
-        .progress-wrapper { background:#080c0a; border:1px solid #607b68; padding:6px; }
-        .progress-bar { background:#0d120f; border:1px solid #34443a; height:62px; overflow:hidden; position:relative; }
-        .progress-fill { background:#73f5a6; height:100%; transition:width .3s ease; width:0; }
-        .progress-text { color:#f1f6f2; font-size:20px; font-weight:400; left:50%; position:absolute; text-shadow:0 1px 8px rgba(0,0,0,.8); top:50%; transform:translate(-50%,-50%); z-index:3; }
-        .status-message { color:#b4c1b8; font-size:15px; margin-top:12px; text-align:left; }
-        .credits { border-top:1px solid #34443a; color:#b4c1b8; flex:0 0 auto; font-size:13px; margin:0 auto; padding:8px 20px 10px; text-align:center; width: calc(100% - 64px); max-width: 920px; }
+        .progress-label { color:#a294ff; font-size:15px; margin-bottom:10px; }
+        .progress-wrapper { background:#080c0a; border:1px solid #6f63a8; padding:6px; }
+        .progress-bar { background:#0d120f; border:1px solid #454545; height:62px; overflow:hidden; position:relative; }
+        .progress-fill { background:#a294ff; height:100%; transition:width .3s ease; width:0; }
+        .progress-text { color:#f5f5f5; font-size:20px; font-weight:400; left:50%; position:absolute; text-shadow:0 1px 8px rgba(0,0,0,.8); top:50%; transform:translate(-50%,-50%); z-index:3; }
+        .status-message { color:#b5b5b5; font-size:15px; margin-top:12px; text-align:left; }
+        .credits { border-top:1px solid #454545; color:#b5b5b5; flex:0 0 auto; font-size:13px; margin:0 auto; padding:8px 20px 10px; text-align:center; width: calc(100% - 64px); max-width: 920px; }
         .credits-line { display:inline; }
-        .credits-line + .credits-line::before { color:#607b68; content:"  //  "; }
-        .credit-label { color:#b4c1b8; }
-        .credits a { color:#f1f6f2; }
-        .credits a:hover,.credits a:focus { color:#73f5a6; }
+        .credits-line + .credits-line::before { color:#6f63a8; content:"  //  "; }
+        .credit-label { color:#b5b5b5; }
+        .credits a { color:#f5f5f5; }
+        .credits a:hover,.credits a:focus { color:#a294ff; }
         @media (max-width:700px) {
             body { overflow:auto; }
             .container { justify-content:flex-start; padding:28px 0 22px; width: calc(100% - 32px); max-width: 560px; }
@@ -80,19 +80,22 @@ if (window.applicationCache.status == 2) { localStorage.is755BCached = true; }
             document.getElementById("progressText").innerHTML = progress + "%";
         };
         window.applicationCache.oncached = function () {
+            document.getElementById("myBar").style.width = "100%";
+            document.getElementById("progressText").innerHTML = "100%";
             document.getElementById("progress").innerHTML = "Page Cached Successfully!!!";
             localStorage.is755BCached = true;
-            setTimeout(function () { window.location.reload("myBar"); }, 1500);
+            setTimeout(function () { window.location.reload(); }, 1500);
         };
         window.applicationCache.onupdateready = function () {
+            document.getElementById("myBar").style.width = "100%";
+            document.getElementById("progressText").innerHTML = "100%";
             document.getElementById("progress").innerHTML = "Update Cache Successfully!!!";
             localStorage.is755BCached = true;
-            setTimeout(function () { window.location.reload("myBar"); }, 1500);
+            setTimeout(function () { window.location.reload(); }, 1500);
         };
         window.applicationCache.onnoupdate = function () { window.location.replace("index.html"); };
         window.applicationCache.onerror = function () { window.location.replace("index.html"); };
 
-        // Fallback progress animation
         var width = 0;
         function frame1() {
             var elem = document.getElementById("myBar");

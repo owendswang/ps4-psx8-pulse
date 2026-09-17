@@ -1,8 +1,8 @@
 CACHE MANIFEST 
-#VERSION 1.0
+# VERSION 1.2
 
 CACHE:
-index.html
+index5.html
 includes/script.js
 src/lapse.js
 src/loader.js

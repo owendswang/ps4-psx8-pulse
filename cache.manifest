@@ -1,8 +1,11 @@
 CACHE MANIFEST 
-#VERSION 1.0
+# VERSION 1.2
 
 CACHE:
 index.html
+css/version-selector.html
+900/version-selector.html
+700/version-selector.html
 
 NETWORK: 
 *
