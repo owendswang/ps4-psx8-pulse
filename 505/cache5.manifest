@@ -2,12 +2,12 @@ CACHE MANIFEST
 # VERSION 1.4
 
 # Core Files
-cache.html
-index.html
+cache5.html
+index5.html
 exploit.js
 
 # GoldHEN Payloads
-../payloads/goldhen.bin
+../payloads/goldhen5.bin
 
 # Utility Payloads
 ../payloads/Kernel-Clock.bin

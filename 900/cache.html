@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PlayStation Pulse PSFree Host 9.xx - Auto Cache</title>
-    <script>history.replaceState(null, null, 'index.html');</script>
     <style>
 * { box-sizing:border-box; margin:0; padding:0; }
         html { background:#050706; }
@@ -48,7 +47,7 @@
     <main class="container">
         <header class="logo-section">
             <h1 class="main-title">PlayStation Pulse PSFree Host 9.xx</h1>
-            <p class="subtitle">Loading Offline Cache</p>
+            <p class="subtitle">Caching GoldHEN v2.4b18.10</p>
         </header>
 
         <section class="progress-container">
@@ -69,48 +68,32 @@
     </footer>
 
     <script>
-        if (window.applicationCache.status == 2) { localStorage.is755BCached = true; }
+        function enterHost() {
+            window.location.replace("index.html");
+        }
         window.applicationCache.ondownloading = function () {
             document.getElementById("progress").innerHTML = "Page Caching Started!!";
-            localStorage.is755BCached = false;
         };
         window.applicationCache.onprogress = function (a) {
-            var progress = Math.round(100 * (a.loaded / a.total));
+            var progress = a.total ? Math.round(100 * (a.loaded / a.total)) : 0;
             document.getElementById("myBar").style.width = progress + "%";
             document.getElementById("progressText").innerHTML = progress + "%";
         };
-        window.applicationCache.oncached = function () {
+        window.applicationCache.oncached = window.applicationCache.onupdateready = function () {
             document.getElementById("myBar").style.width = "100%";
             document.getElementById("progressText").innerHTML = "100%";
-            document.getElementById("progress").innerHTML = "Page Cached Successfully!!!";
-            localStorage.is755BCached = true;
-            setTimeout(function () { window.location.reload(); }, 1500);
+            document.getElementById("progress").innerHTML = "Cache Ready ✔ Starting GoldHEN...";
+            setTimeout(enterHost, 1500);
         };
-        window.applicationCache.onupdateready = function () {
-            document.getElementById("myBar").style.width = "100%";
-            document.getElementById("progressText").innerHTML = "100%";
-            document.getElementById("progress").innerHTML = "Update Cache Successfully!!!";
-            localStorage.is755BCached = true;
-            setTimeout(function () { window.location.reload(); }, 1500);
-        };
-        window.applicationCache.onnoupdate = function () { window.location.replace("index.html"); };
-        window.applicationCache.onerror = function () { window.location.replace("index.html"); };
-
-        var width = 0;
-        function frame1() {
-            var elem = document.getElementById("myBar");
-            var text = document.getElementById("progressText");
-            var i = 0;
-            var id = setInterval(fra, 10);
-            function fra() {
-                if (i < 10 && width < 100) {
-                    width++;
-                    elem.style.width = width + "%";
-                    text.innerHTML = width + "%";
-                }
-                i++;
+        window.applicationCache.onnoupdate = enterHost;
+        window.applicationCache.onerror = function () {
+            var status = window.applicationCache.status;
+            if (status === 1 || status === 4) {
+                enterHost(); // An existing complete cache remains usable offline.
+            } else {
+                document.getElementById("progress").innerHTML = "Offline Cache Failed - Check Connection And Reload";
             }
-        }
+        };
     </script>
 </body>
 

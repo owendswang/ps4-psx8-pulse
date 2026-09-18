@@ -2,10 +2,10 @@ CACHE MANIFEST
 # VERSION 1.4
 
 CACHE: 
-cache.html
-index.html
+cache5.html
+index5.html
 pl_loader.js
-../payloads/goldhen.bin
+../payloads/goldhen5.bin
 ../payloads/ftp.bin
 ../payloads/ps4debug.bin
 ../payloads/app2usb.bin
