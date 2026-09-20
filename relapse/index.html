@@ -4,8 +4,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PlayStation Pulse Slopkit Host</title>
-<style>
+  <title>PlayStation Pulse Relapse Host</title>
+  <style>
     * {
       box-sizing: border-box;
       margin: 0;
@@ -59,7 +59,7 @@
 
     .header-section::before {
       color: #a294ff;
-      content: "●  PS4 / Slopkit HOST";
+      content: "●  PS4 / Relapse HOST";
       display: block;
       font-size: 13px;
       letter-spacing: 0.12em;
@@ -167,25 +167,19 @@
       content: "  //  ";
     }
 
-    .credit-label {
-      color: #b5b5b5;
+    .ok {
+      color: #7fd0a0;
     }
 
-    #console.ok {
-        color:#7fd0a0;
+    .bad {
+      color: #d08a7f;
     }
-    #console.bad {
-        color:#d08a7f;
-    }
-    #console.warn {
-        color:#d8c07f;
+
+    .warn {
+      color: #d8c07f;
     }
 
     @media (max-width: 820px) {
-      body {
-        overflow: auto;
-      }
-
       .container {
         justify-content: flex-start;
         padding: 24px 0 20px;
@@ -220,9 +214,9 @@
         font-size: 30px;
       }
     }
-</style>
+  </style>
   <script>
-    if (window.applicationCache.status === window.applicationCache.UNCACHED) {
+    if (window.applicationCache && window.applicationCache.status === window.applicationCache.UNCACHED) {
       window.location.replace("cache.html");
     }
   </script>
@@ -230,117 +224,55 @@
 
 <body>
   <main class="container">
-    <section class="header-section">
-      <h1 class="main-title">PlayStation Pulse Slopkit Host</h1>
-      <p class="subtitle">Offline Slopkit + Lapse / Poops Auto GoldHEN</p>
-      <p class="version-info">PS4 FW 11.50 – 13.00 GoldHEN v2.4b18.11</p>
+    <header class="header-section">
+      <h1 class="main-title">PlayStation Pulse Relapse Host</h1>
+      <p class="subtitle">Offline Slopkit + Relapse Auto GoldHEN</p>
+      <p class="version-info">PS4 FW 13.02 – 13.52 GoldHEN v2.4b18.11</p>
       <p id="UA">Running on:</p>
-    </section>
-
+    </header>
     <section class="status-container">
       <div class="status-label">Exploit output</div>
       <pre id="console">Detecting firmware...</pre>
     </section>
   </main>
   <footer class="credits">
-    <div class="credits-line">
-      <span class="credit-label">Premium Game Servers -</span>
-      <a href="https://nodeplay.net/" class="nodeplay-link">NodePlay</a>
-    </div>
-    <div class="credits-line">
-      <span class="credit-label">Author:</span>
-      <a href="https://t.me/sudoBlackArch" class="telegram-link">BlackArch</a>
-      <span style="margin: 0 1rem;">•</span>
-      <span class="credit-label">Telegram:</span>
-      <a href="https://t.me/PlayStation_Pulse" class="credit-link">PlayStation Pulse</a>
-    </div>
-    <div class="credits-line">Slopkit: Egy, Sonic, Yenyen, Zeco, Gezine, Echostretch, Ufm42, TheFloW, John Tornblom, Flatz, Idlesauce and PS5 R&D Discord</div>
+    <div class="credits-line">Premium Game Servers - <a href="https://nodeplay.net/">NodePlay</a></div>
+    <div class="credits-line">Author: <a href="https://t.me/sudoBlackArch">BlackArch</a> • Telegram: <a
+        href="https://t.me/PlayStation_Pulse">PlayStation Pulse</a></div>
+    <div class="credits-line">Relapse: RAW GAME × mansoor0x © 2026</div>
   </footer>
-
 <script>
-(function () {
+  (function () {
+    if (window.applicationCache && window.applicationCache.status === window.applicationCache.UNCACHED) return;
+
     var stateEl = document.getElementById("console");
     var detEl = document.getElementById("UA");
     function setState(t, c) { stateEl.textContent = t; stateEl.className = c || ""; }
+    detEl.innerText += " " + navigator.userAgent;
+
     var params = new URLSearchParams(location.search);
+
+    // Firmwares with measured kernel table — KEEP IN SYNC with ps4_offsets.js
+    var SUPPORTED = { 1302: 1, 1304: 1, 1350: 1, 1352: 1 };
 
     var key = null, fwnum = null;
     var m = /PlayStation\s+4[\/ ](\d+)\.(\d+)/.exec(navigator.userAgent);
     if (m) {
-        var minor = parseInt(m[2], 16);
-        var ms = minor.toString(16);
-        if (ms.length < 2) ms = "0" + ms;
-        key = m[1] + "." + ms;
-        fwnum = parseInt(m[1], 10) * 100 + parseInt(ms, 10);
+      var ms = parseInt(m[2], 16).toString(16);
+      if (ms.length < 2) ms = "0" + ms;
+      key = m[1] + "." + ms;
+      fwnum = parseInt(m[1], 10) * 100 + parseInt(ms, 10);
     }
-    var bug = null, why = "";
-    var forced = params.get("bug");
-    if (forced === "lapse" || forced === "poops") {
-        bug = forced; why = "forced via ?bug=" + forced;
-    } else if (!key) {
-        why = "user-agent is not a PlayStation 4";
-    } else if (fwnum <= 1202) {
-        bug = "lapse"; why = key + " <= 12.02";
-    } else if (fwnum >= 1250) {
-        bug = "poops"; why = key + " >= 12.50";
-    } else {
-        why = key + " -- no working bug (lapse ends at 12.02, poops needs 12.50)";
-    }
-    detEl.innerText += " " + navigator.userAgent;
 
-    if (!bug) { setState("UNSUPPORTED FIRMWARE", "bad"); return; }
+    var forced = params.get("force") === "1";
+    var supported = forced || (fwnum !== null && SUPPORTED[fwnum] === 1);
 
-    var target = (bug === "lapse" ? "run_lapse.html" : "run_poops.html")
-        + location.search;
-    function go() { setState("loading " + bug + " chain...", "warn");
-                    location.replace(target); }
+    if (!supported) { setState("UNSUPPORTED FIRMWARE", "bad"); return; }
 
-    var ac = window.applicationCache;
-    if (!ac || !document.documentElement.hasAttribute("manifest")) {
-        go();
-    } else if (!navigator.onLine) {
-        setCache("offline -- from cache", true);
-        go();
-    } else if (ac.status === ac.IDLE) {
-        setCache("cached", true);
-        go();
-    } else if (ac.status === ac.UPDATEREADY) {
-        try { ac.swapCache(); } catch (e) {}
-        setCache("update downloaded", true);
-        location.reload();
-    } else {
-        setCache("checking cache...");
-        ac.addEventListener("downloading",
-            function () { setCache("caching for offline (first run)..."); }, false);
-        ac.addEventListener("progress", function (e) {
-            if (e && e.total)
-                setCache("caching " + Math.round((e.loaded / e.total) * 100) + "%");
-        }, false);
-
-        ac.addEventListener("cached", function () {
-            setCache("cached for offline use", true);
-            go();
-        }, false);
-        ac.addEventListener("updateready", function () {
-            try { ac.swapCache(); } catch (e) {}
-            setCache("update downloaded", true);
-            location.reload();
-        }, false);
-
-        ac.addEventListener("noupdate", function () {
-            setCache("cached -- offline ready", true);
-            go();
-        }, false);
-        ac.addEventListener("error", function () {
-            setCache("cache unavailable");
-            go();
-        }, false);
-        ac.addEventListener("obsolete", function () {
-            setCache("cache obsolete");
-            go();
-        }, false);
-    }
-})();
+    var target = "jb.html" + location.search;
+    setState("Loading Relapse chain...", "warn");
+    location.replace(target);
+  })();
 </script>
 </body>
 

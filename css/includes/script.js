@@ -9,9 +9,17 @@ let autoJbValue = storedAutoJb !== null ? storedAutoJb === "true" : true;
 
 // choose one of kernel exploits
 var exploitChain = localStorage.getItem("exploitChain") || "lapse";
+if (exploitChain !== "lapse" && exploitChain !== "netctrl") {
+    exploitChain = "lapse";
+    localStorage.setItem("exploitChain", exploitChain);
+}
 const netctrlRadio = document.getElementById("netctrl-exploit");
 const lapseRadio = document.getElementById("lapse-exploit");
 const kexForm = document.getElementById('kernel-options');
+const cachePending = window.applicationCache && window.applicationCache.status === window.applicationCache.UNCACHED;
+if (cachePending) {
+    jeilbrekBtn.disabled = checkbox.disabled = netctrlRadio.disabled = lapseRadio.disabled = true;
+}
 
 // Show user agent
 UAElement.innerText += " " + navigator.userAgent;
@@ -65,29 +73,9 @@ function jailbreakCountdown() {
     }, 1000);
 }
 
-function cacheProgress(e) {
-    var Percent = (Math.round(e.loaded / e.total * 100));
-    document.title = "Caching: " + Percent + "%";
-}
-
-function displayCacheProgress() {
-    setTimeout(function () {
-        // show a tick
-        document.title = "\u2713";
-    }, 1000);
-    setTimeout(function () {
-        // location.reload();
-        document.title = "CSSFontFace exploit";
-    }, 3000);
-}
-
 document.addEventListener("DOMContentLoaded", function() {
-    // Cache handling
-    if (window.applicationCache) {
-        window.applicationCache.addEventListener("progress", cacheProgress, false);
-        window.applicationCache.oncached = function (e) { displayCacheProgress(); };
-        window.applicationCache.onupdateready = function (e) { displayCacheProgress(); };
-    }
+    // Cache progress UI lives in cache.html; do not start while redirecting.
+    if (cachePending) return;
 
     // choose prefered exploit chain
     if (exploitChain == "netctrl") {

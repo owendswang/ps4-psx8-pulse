@@ -144,6 +144,7 @@
       padding: 16px 18px;
     }
 
+    .exploit-controls,
     #kernel-options {
       align-items: center;
       display: flex;
@@ -277,6 +278,7 @@
         font-size: 44px;
       }
 
+      .exploit-controls,
       #kernel-options {
         align-items: flex-start;
         flex-direction: column;
@@ -335,7 +337,7 @@
     <section class="header-section">
       <h1 class="main-title">PlayStation Pulse CSSFontFace Host</h1>
       <p class="subtitle">Offline CSSFontFace Auto GoldHEN by Telegram PlayStation Pulse</p>
-      <p class="version-info">CSSFontFace PS4 FW 6.00–11.02 GoldHEN v2.4b18.10</p>
+      <p class="version-info">CSSFontFace PS4 FW 6.00–11.02 GoldHEN v2.4b18.11</p>
       <p id="UA">Running on:</p>
     </section>
 
@@ -346,20 +348,22 @@
 
     <section class="controls-section">
       <div class="section-title">Exploit control</div>
-      <form id="kernel-options">
-        <span class="chain-label">Kernel chain</span>
-        <div class="chain-options">
-          <input type="radio" name="kernel" id="netctrl-exploit" value="netctrl">
-          <label class="chain-option" for="netctrl-exploit">NetCtrl</label>
-          <input type="radio" name="kernel" id="lapse-exploit" value="lapse">
-          <label class="chain-option" for="lapse-exploit">Lapse</label>
-        </div>
+      <div class="exploit-controls">
+        <form id="kernel-options">
+          <span class="chain-label">Kernel chain</span>
+          <div class="chain-options">
+            <input type="radio" name="kernel" id="netctrl-exploit" value="netctrl">
+            <label class="chain-option" for="netctrl-exploit">NetCtrl</label>
+            <input type="radio" name="kernel" id="lapse-exploit" value="lapse">
+            <label class="chain-option" for="lapse-exploit">Lapse</label>
+          </div>
+        </form>
         <button id="jeilbrek" type="button">Jailbreak</button>
         <div class="auto-jb">
           <label class="auto-jb-label" for="autoJbInput" id="autoJbLabel">Auto Jailbreak</label>
           <input id="autoJbInput" type="checkbox">
         </div>
-      </form>
+      </div>
     </section>
   </main>
 
@@ -374,6 +378,14 @@
       <span style="margin: 0 1rem;">•</span>
       <span class="credit-label">Telegram:</span>
       <a href="https://t.me/PlayStation_Pulse" class="credit-link">PlayStation Pulse</a>
+    </div>
+    <div class="credits-line">
+      <span class="credit-label">CSSFontFace:</span>
+      <a href="https://github.com/ufm42" class="credit-link">ufm42</a>
+      <a href="https://github.com/ntfargo" class="credit-link">ntfargo</a>
+      <a href="https://github.com/DrYenyen" class="credit-link">Dr.YenYen</a>
+      <a href="https://cturt.github.io/ps4.html" class="credit-link">CTurt</a>
+      <a href="https://github.com/ChendoChap/PS5-Webkit-Execution" class="credit-link">ChendoChap</a>
     </div>
   </footer>
 
