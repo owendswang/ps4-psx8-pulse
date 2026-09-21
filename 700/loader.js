@@ -37,7 +37,7 @@ function goldhen_already(){
 function load_exploit_done(){
     document.getElementById('notify').style.display = ''
     document.getElementById('notify').className = 'notification'
-    setTimeout(function(){document.getElementById('log').innerHTML ='<h1 style=color:#c5c7ff>Jailbreak Success !!! GoldHEN v2.4b18.11 Loaded !!!</h1>'; }, 50); 
+    setTimeout(function(){document.getElementById('log').innerHTML ='<h1 style=color:#c5c7ff>Jailbreak Success !!! GoldHEN v2.4b18.12 Loaded !!!</h1>'; }, 50); 
     setTimeout(ani2, 4000);
 }
 
