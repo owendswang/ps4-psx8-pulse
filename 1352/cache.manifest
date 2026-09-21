@@ -1,0 +1,20 @@
+CACHE MANIFEST
+# v3 - flat host, goldhen b18.12 for 13.02-13.52
+
+CACHE:
+index.html
+jb.html
+cache.html
+jb.js
+core.js
+mem.js
+int64.js
+rpc_worker.js
+ps4_offsets.js
+goldhen.bin
+patches/1302.bin
+patches/1350.bin
+patches/1352.bin
+
+NETWORK:
+*

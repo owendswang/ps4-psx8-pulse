@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en" manifest="cache.manifest">
+
+<head>
+    <link rel="icon" type="image/png" href="../../pspulse.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PSPULSE // PS4 6.00-11.02 HOST / 2.4B18.12</title>
+    <style>
+        :root {
+            --bg: #151515;
+            --panel: #1c1c1c;
+            --panel-2: #242424;
+            --line: #2e2e2e;
+            --line-bright: #454545;
+            --text: #f5f5f5;
+            --muted: #b5b5b5;
+            --dim: #828282;
+            --accent: #a294ff;
+            --red: #ff9b9b;
+            --amber: #e1bd72;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { background: var(--bg); }
+        html, body { min-height: 100%; }
+        body {
+            background-color: var(--bg);
+            background-image: linear-gradient(rgba(162, 148, 255, .05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(162, 148, 255, .05) 1px, transparent 1px);
+            background-size: 36px 36px;
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            font: 17px/1.4 Consolas, "Liberation Mono", monospace;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        a { color: inherit; }
+
+        .app { display: flex; flex: 1 0 auto; flex-direction: column; margin: 0 auto; padding: 14px 26px 12px; width: min(100% - 52px, 1220px); }
+
+        /* Top status bar */
+        .bar {
+            align-items: center;
+            border: 1px solid var(--line-bright);
+            display: flex;
+            font-size: 14px;
+            justify-content: space-between;
+            letter-spacing: .1em;
+            padding: 10px 16px;
+            text-transform: uppercase;
+        }
+        .bar b { color: var(--accent); font-weight: 400; }
+        .bar-fw { color: var(--dim); }
+        .bar-fw::before { color: var(--accent); content: "\25CF "; }
+
+        .layout { display: flex; flex: 1 0 auto; flex-direction: column; padding: 20px 0 0; }
+
+        /* Header */
+        .kicker { color: var(--accent); font-size: 14px; letter-spacing: .14em; margin: 0 0 12px; }
+        h1 { font-size: clamp(34px, 5vw, 56px); font-weight: 400; letter-spacing: -.07em; line-height: 1; margin: 0; }
+        h1 em { color: var(--accent); font-style: normal; }
+        .sub { color: var(--muted); font-size: 17px; margin: 13px 0 0; max-width: 720px; }
+        .boot { color: var(--dim); font-size: 14px; list-style: none; margin: 12px 0 0; }
+        .boot li { margin: 3px 0; }
+        .boot b { color: var(--accent); font-weight: 400; }
+        #UA { color: var(--dim); display: block; font-size: 12px; margin-top: 10px; overflow-wrap: anywhere; }
+        /* Offline cache stage (upstream inline script target) */
+        #cache { color: var(--dim); font-size: 13px; margin: 6px 0 0; min-height: 16px; }
+        #cache.cacheok { color: var(--accent); }
+
+        /* Status / exploit output */
+        .status {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            margin-top: 20px;
+            padding: 14px 16px;
+        }
+        .status-label {
+            border-bottom: 1px solid var(--line);
+            color: var(--muted);
+            font-size: 14px;
+            letter-spacing: .12em;
+            margin-bottom: 11px;
+            padding: 0 4px 10px;
+            text-transform: uppercase;
+        }
+        /* logger target in src/misc.js - keep id, pre-wrap and bounds */
+        #console {
+            background: var(--panel-2);
+            border: 1px solid var(--line-bright);
+            color: var(--text);
+            font: inherit;
+            font-size: 14px;
+            line-height: 1.45;
+            max-height: 132px;
+            min-height: 42px;
+            overflow: auto;
+            padding: 10px 14px;
+            white-space: pre-wrap;
+        }
+
+        /* Controls */
+        .controls { border: 1px solid var(--line); margin-top: 14px; padding: 14px; }
+        .section-title {
+            border-bottom: 1px solid var(--line);
+            color: var(--muted);
+            font-size: 14px;
+            letter-spacing: .12em;
+            margin-bottom: 11px;
+            padding: 0 4px 10px;
+            text-transform: uppercase;
+        }
+        #kernel-options { align-items: center; display: flex; flex-wrap: wrap; gap: 10px 14px; }
+        .chain-label { color: var(--muted); font-size: 13px; letter-spacing: .08em; text-transform: uppercase; }
+        .chain-options { display: flex; gap: 8px; }
+        #kernel-options input[type="radio"] { height: 1px; opacity: 0; position: absolute; width: 1px; }
+        .chain-option,
+        #jeilbrek,
+        #reloadBtn,
+        .auto-jb-label {
+            background: var(--panel);
+            border: 1px solid var(--line-bright);
+            color: var(--text);
+            cursor: pointer;
+            font: inherit;
+            min-height: 48px;
+            padding: 10px 14px;
+        }
+        #kernel-options input[type="radio"]:focus + .chain-option,
+        #kernel-options input[type="radio"]:checked + .chain-option,
+        .chain-option:hover,
+        #jeilbrek:hover,
+        #jeilbrek:focus,
+        #reloadBtn:hover,
+        #reloadBtn:focus,
+        .auto-jb-label:hover {
+            background: var(--panel-2);
+            border-color: var(--accent);
+            color: var(--accent);
+            outline: 0;
+        }
+        #kernel-options input[type="radio"]:focus + .chain-option,
+        #jeilbrek:focus,
+        #reloadBtn:focus { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
+        #jeilbrek:disabled { cursor: wait; opacity: .55; }
+        .auto-jb { align-items: center; display: flex; gap: 8px; }
+        .auto-jb-label { align-items: center; display: flex; font-size: 14px; text-transform: none; }
+        .auto-jb-label:focus { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); outline: 0; }
+        #autoJbInput { height: 18px; width: 18px; }
+
+        /* NodePlay */
+        .nodeplay {
+            align-items: center;
+            background: var(--panel);
+            border: 1px solid var(--line-bright);
+            display: flex;
+            justify-content: space-between;
+            margin-top: 14px;
+            min-height: 68px;
+            padding: 10px 18px;
+            text-decoration: none;
+        }
+        .nodeplay:hover, .nodeplay:focus { background: var(--panel-2); border-color: var(--accent); outline: 0; }
+        .nodeplay:focus { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
+        .np-label { color: var(--dim); display: block; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; }
+        .np-name { color: var(--text); display: block; font-size: 24px; margin-top: 2px; }
+        .np-name b { color: var(--accent); font-weight: 400; }
+        .np-open { color: var(--accent); font-size: 14px; }
+
+        /* Footer */
+        .foot {
+            border-top: 1px solid var(--line);
+            color: var(--dim);
+            font-size: 13px;
+            margin-top: 16px;
+            padding: 12px 4px 2px;
+            text-align: center;
+        }
+        .foot a { color: var(--muted); }
+        .foot a:hover, .foot a:focus { color: var(--accent); }
+        .foot div { margin: 2px 0; }
+
+        @media (max-width: 760px) {
+            body { overflow: auto; }
+            .app { padding: 8px 10px; width: min(100% - 20px, 560px); }
+            .bar { font-size: 12px; padding: 8px 12px; }
+            .layout { padding-top: 14px; }
+            h1 { font-size: 38px; }
+            .sub { font-size: 16px; }
+            #kernel-options { align-items: flex-start; flex-direction: column; }
+            .chain-options { width: 100%; }
+            .chain-option { flex: 1; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <header class="bar">
+            <span><b>PSPULSE</b> // ps4 hosts</span>
+            <span class="bar-fw">fw 6.00-11.02 ready</span>
+        </header>
+
+        <main class="layout">
+            <p class="kicker">$ ./launch --cssfontface</p>
+            <h1>CSSFontFace <em>6.00-11.02</em> host</h1>
+            <p class="sub">Offline auto GoldHEN loader by PlayStation Pulse.</p>
+            <ul class="boot">
+                <li>[ <b>ok</b> ] cssfontface chain ready</li>
+                <li>[ <b>ok</b> ] goldhen v2.4b18.12 staged</li>
+                <li>[ <b>ok</b> ] offline cache ready</li>
+            </ul>
+            <p id="UA">Running on:</p>
+            <p id="cache">Checking offline cache...</p>
+
+            <div class="status">
+                <div class="status-label">Exploit output</div>
+                <pre id="console">Ready. Awaiting execution...</pre>
+            </div>
+
+            <section class="controls">
+                <div class="section-title">Exploit control</div>
+                <form id="kernel-options">
+                    <span class="chain-label">Kernel chain</span>
+                    <div class="chain-options">
+                        <input type="radio" name="kernel" id="netctrl-exploit" value="netctrl">
+                        <label class="chain-option" for="netctrl-exploit">Poops</label>
+                        <input type="radio" name="kernel" id="lapse-exploit" value="lapse">
+                        <label class="chain-option" for="lapse-exploit">Lapse</label>
+                    </div>
+                    <button id="jeilbrek" type="button">Jailbreak</button>
+                    <button id="reloadBtn" type="button">Reload</button>
+                    <div class="auto-jb">
+                        <label class="auto-jb-label" for="autoJbInput" id="autoJbLabel">Auto Jailbreak</label>
+                        <input id="autoJbInput" type="checkbox">
+                    </div>
+                </form>
+            </section>
+
+            <a class="nodeplay" href="https://nodeplay.net/" target="_blank" rel="noopener">
+                <span><span class="np-label">Premium game servers</span><span class="np-name">Node<b>Play</b></span></span>
+                <span class="np-open">OPEN &#8599;</span>
+            </a>
+
+            <footer class="foot">
+                <div>Author: <a href="https://t.me/sudoBlackArch">BlackArch</a> // Telegram: <a href="https://t.me/PlayStation_Pulse">PlayStation Pulse</a></div>
+                <div>Upstream: <a href="https://github.com/itskenethb?tab=repositories">itskenethb</a></div>
+            </footer>
+        </main>
+    </div>
+
+    <script src="src/main.js"></script>
+    <script src="includes/script.js"></script>
+
+    <script>
+    (function () {var cacheEl = document.getElementById("cache");
+        function setCache(text, ok) {
+            if (!cacheEl) return;
+            cacheEl.textContent = text;
+            cacheEl.className = ok ? "cacheok" : "";
+        }
+
+        var ac = window.applicationCache;
+
+        if (!ac || !document.documentElement.hasAttribute("manifest")) {
+            setCache("application cache unavailable");
+        } else if (!navigator.onLine) {
+            setCache("offline -- using cached resources", true);
+        } else if (ac.status === ac.IDLE) {
+            setCache("cached -- offline ready", true);
+        } else if (ac.status === ac.UPDATEREADY) {
+            try {
+                ac.swapCache();
+            } catch (e) {}
+            setCache("update downloaded -- offline ready", true);
+        } else {
+            setCache("checking cache...");
+
+            ac.addEventListener("downloading", function () {
+                setCache("caching for offline (first run)...");
+            }, false);
+
+            ac.addEventListener("progress", function (e) {
+                if (e && e.total) {
+                    setCache(
+                        "caching " +
+                        Math.round((e.loaded / e.total) * 100) +
+                        "%"
+                    );
+                }
+            }, false);
+
+            ac.addEventListener("cached", function () {
+                setCache("cached for offline use", true);
+            }, false);
+
+            ac.addEventListener("updateready", function () {
+                try {
+                    ac.swapCache();
+                } catch (e) {}
+                setCache("update downloaded -- offline ready", true);
+            }, false);
+
+            ac.addEventListener("noupdate", function () {
+                setCache("cached -- offline ready", true);
+            }, false);
+
+            ac.addEventListener("error", function () {
+                setCache("cache unavailable");
+            }, false);
+
+            ac.addEventListener("obsolete", function () {
+                setCache("cache obsolete");
+            }, false);
+        }
+    })();
+    </script>
+
+</body>
+
+</html>

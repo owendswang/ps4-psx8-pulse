@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/png" href="pspulse.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PSPULSE // PS4 HOSTS</title>
+    <style>
+        :root {
+            --bg: #151515;
+            --panel: #1c1c1c;
+            --panel-2: #242424;
+            --line: #2e2e2e;
+            --line-bright: #454545;
+            --text: #f5f5f5;
+            --muted: #b5b5b5;
+            --dim: #828282;
+            --accent: #a294ff;
+            --accent-dim: #6f63a8;
+        }
+
+        * { box-sizing: border-box; }
+        html { background: var(--bg); }
+        html, body { margin: 0; min-height: 100%; }
+        body {
+            background-color: var(--bg);
+            background-image: linear-gradient(rgba(162, 148, 255, .05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(162, 148, 255, .05) 1px, transparent 1px);
+            background-size: 36px 36px;
+            color: var(--text);
+            font: 17px/1.4 Consolas, "Liberation Mono", monospace;
+        }
+        a { color: inherit; }
+
+        .app { display: flex; flex-direction: column; margin: 0 auto; max-width: 1220px; min-height: 100vh; padding: 14px 26px 12px; }
+
+        /* Top status bar */
+        .bar {
+            align-items: center;
+            border: 1px solid var(--line-bright);
+            display: flex;
+            font-size: 14px;
+            justify-content: space-between;
+            letter-spacing: .1em;
+            padding: 10px 16px;
+            text-transform: uppercase;
+        }
+        .bar b { color: var(--accent); font-weight: 400; }
+        .bar-ready { color: var(--dim); }
+        .bar-ready::before { color: var(--accent); content: "\25CF "; }
+
+        .layout { display: flex; flex: 1 0 auto; flex-direction: column; padding: 22px 0 0; }
+
+        /* Header */
+        .kicker { color: var(--accent); font-size: 14px; letter-spacing: .14em; margin: 0 0 12px; }
+        h1 { font-size: clamp(38px, 5.4vw, 62px); font-weight: 400; letter-spacing: -.07em; line-height: 1; margin: 0; }
+        h1 em { color: var(--accent); font-style: normal; }
+        .sub { color: var(--muted); font-size: 18px; margin: 14px 0 0; max-width: 720px; }
+        .boot { color: var(--dim); font-size: 14px; list-style: none; margin: 14px 0 0; padding: 0; }
+        .boot li { margin: 3px 0; }
+        .boot b { color: var(--accent); font-weight: 400; }
+
+        /* Menu */
+        .menu { border: 1px solid var(--line); margin-top: 22px; padding: 14px; }
+        .menu-top {
+            align-items: baseline;
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 11px;
+            padding: 0 4px 10px;
+        }
+        .menu-title { color: var(--text); font-size: 15px; letter-spacing: .12em; text-transform: uppercase; }
+        .menu-hint { color: var(--dim); font-size: 13px; }
+        .grid { display: grid; gap: 8px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+        .row {
+            align-items: center;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            display: flex;
+            min-height: 74px;
+            padding: 12px 14px;
+            text-decoration: none;
+        }
+        .row:hover, .row:focus {
+            background: var(--panel-2);
+            border-color: var(--accent);
+            outline: 0;
+        }
+        .row:focus { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
+        .num { color: var(--dim); font-size: 14px; min-width: 42px; }
+        .row:hover .num, .row:focus .num { color: var(--accent); }
+        .name { color: var(--text); display: block; font-size: 20px; line-height: 1.2; }
+        .meta { color: var(--muted); display: block; font-size: 13px; margin-top: 4px; }
+        .go { color: var(--dim); font-size: 13px; margin-left: auto; opacity: 0; padding-left: 12px; white-space: nowrap; }
+        .row:hover .go, .row:focus .go { opacity: 1; color: var(--accent); }
+
+        /* NodePlay */
+        .nodeplay {
+            align-items: center;
+            background: var(--panel);
+            border: 1px solid var(--line-bright);
+            display: flex;
+            justify-content: space-between;
+            margin-top: 12px;
+            min-height: 68px;
+            padding: 10px 18px;
+            text-decoration: none;
+        }
+        .nodeplay:hover, .nodeplay:focus { background: var(--panel-2); border-color: var(--accent); outline: 0; }
+        .nodeplay:focus { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
+        .np-label { color: var(--dim); display: block; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; }
+        .np-name { color: var(--text); display: block; font-size: 24px; margin-top: 2px; }
+        .np-name b { color: var(--accent); font-weight: 400; }
+        .np-open { color: var(--accent); font-size: 14px; }
+
+        /* Footer */
+        .foot {
+            border-top: 1px solid var(--line);
+            color: var(--dim);
+            font-size: 13px;
+            margin-top: 16px;
+            padding: 12px 4px 2px;
+            text-align: center;
+        }
+        .foot a { color: var(--muted); }
+        .foot a:hover, .foot a:focus { color: var(--accent); }
+
+        @media (max-width: 760px) {
+            body { font-size: 16px; }
+            .app { padding: 8px 10px; }
+            .bar { font-size: 12px; padding: 8px 12px; }
+            .layout { padding-top: 16px; }
+            h1 { font-size: 40px; }
+            .sub { font-size: 16px; }
+            .grid { grid-template-columns: 1fr; }
+            .row { min-height: 64px; }
+            .menu-hint { display: none; }
+            .np-name { font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <header class="bar">
+            <span><b>PSPULSE</b> // ps4 hosts</span>
+            <span class="bar-ready">ready</span>
+        </header>
+
+        <main class="layout">
+            <p class="kicker">$ ./launch --select-host</p>
+            <h1>Choose <em>firmware</em></h1>
+            <p class="sub">Pick the host matching the firmware installed on your PlayStation 4.</p>
+            <ul class="boot">
+                <li>[ <b>ok</b> ] 7 host routes detected</li>
+                <li>[ <b>ok</b> ] offline cache ready</li>
+            </ul>
+
+            <section class="menu" aria-label="Firmware host menu">
+                <div class="menu-top">
+                    <span class="menu-title">Available routes</span>
+                    <span class="menu-hint">&uarr; &darr; move &nbsp; X select</span>
+                </div>
+                <nav class="grid">
+                    <a class="row" href="1352/index.html">
+                        <span class="num">01</span>
+                        <span><span class="name">FW 13.02–13.52</span><span class="meta">SlopKit GoldHEN // offline host</span></span>
+                        <span class="go">[ SELECT ]</span>
+                    </a>
+                    <a class="row" href="1300/version-selector.html">
+                        <span class="num">02</span>
+                        <span><span class="name">FW 11.00–13.00</span><span class="meta">SlopKit WebKit // offline host</span></span>
+                        <span class="go">[ SELECT ]</span>
+                    </a>
+                    <a class="row" href="css/version-selector.html">
+                        <span class="num">03</span>
+                        <span><span class="name">FW 6.00–11.02</span><span class="meta">CSSFontFace // GoldHEN host</span></span>
+                        <span class="go">[ SELECT ]</span>
+                    </a>
+                    <a class="row" href="900/version-selector.html">
+                        <span class="num">04</span>
+                        <span><span class="name">FW 9.00–9.60</span><span class="meta">PSFree / Lapse // GoldHEN host</span></span>
+                        <span class="go">[ SELECT ]</span>
+                    </a>
+                    <a class="row" href="700/version-selector.html">
+                        <span class="num">05</span>
+                        <span><span class="name">FW 7.00–8.52</span><span class="meta">PSFree / Lapse // GoldHEN host</span></span>
+                        <span class="go">[ SELECT ]</span>
+                    </a>
+                    <a class="row" href="672/index.html">
+                        <span class="num">06</span>
+                        <span><span class="name">FW 6.72</span><span class="meta">Dedicated host // utility payloads</span></span>
+                        <span class="go">[ SELECT ]</span>
+                    </a>
+                    <a class="row" href="505/index.html">
+                        <span class="num">07</span>
+                        <span><span class="name">FW 5.05</span><span class="meta">Dedicated host // utility payloads</span></span>
+                        <span class="go">[ SELECT ]</span>
+                    </a>
+                </nav>
+            </section>
+
+            <a class="nodeplay" href="https://nodeplay.net/" target="_blank" rel="noopener">
+                <span><span class="np-label">Premium game servers</span><span class="np-name">Node<b>Play</b></span></span>
+                <span class="np-open">OPEN &#8599;</span>
+            </a>
+
+            <footer class="foot">
+                Author: <a href="https://t.me/sudoBlackArch">BlackArch</a> // Telegram: <a href="https://t.me/PlayStation_Pulse">PlayStation Pulse</a>
+            </footer>
+        </main>
+    </div>
+
+    <script>
+        (function () {
+            // Do not intercept arrow keys: the PS4 browser moves its visible
+            // focus pointer natively (spatial navigation). This only places
+            // the initial focus so the cursor is visible right after load.
+            var first = document.querySelector('.row');
+            if (first) first.focus();
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" manifest="cache.manifest">
+<head>
+    <link rel="icon" type="image/png" href="../../pspulse.png">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PSPULSE // 11.00-13.00 LAPSE</title>
+<style>
+    :root {
+        --bg: #151515;
+        --panel: #1c1c1c;
+        --panel-2: #242424;
+        --line: #2e2e2e;
+        --line-bright: #454545;
+        --text: #f5f5f5;
+        --muted: #b5b5b5;
+        --dim: #828282;
+        --accent: #a294ff;
+        --red: #ff9b9b;
+        --amber: #e1bd72;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { background: var(--bg); }
+    html, body { min-height: 100%; }
+    body {
+        background-color: var(--bg);
+        background-image: linear-gradient(rgba(162, 148, 255, .05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(162, 148, 255, .05) 1px, transparent 1px);
+        background-size: 36px 36px;
+        color: var(--text);
+        font: 16px/1.45 Consolas, "Liberation Mono", monospace;
+        min-height: 100vh;
+        overflow: hidden;
+    }
+
+    .app { margin: 0 auto; padding: 14px 26px 12px; width: min(100% - 52px, 1220px); }
+
+    /* Top status bar */
+    .bar {
+        align-items: center;
+        border: 1px solid var(--line-bright);
+        display: flex;
+        font-size: 14px;
+        justify-content: space-between;
+        letter-spacing: .1em;
+        padding: 10px 16px;
+        text-transform: uppercase;
+    }
+    .bar b { color: var(--accent); font-weight: 400; }
+    .bar-chain { color: var(--dim); }
+    .bar-chain::before { color: var(--accent); content: "\25CF "; }
+
+    #state { color: var(--accent); font-size: 22px; font-weight: 400; line-height: 1.25; margin: 18px 0 10px; }
+    .ok { color: var(--accent); }
+    .bad { color: var(--red); }
+    .warn { color: var(--amber); }
+
+    /* chain JS scrolls this element - keep overflow and a fixed height */
+    #out {
+        background: var(--panel);
+        border: 1px solid var(--line-bright);
+        color: var(--text);
+        font: inherit;
+        font-size: 13px;
+        line-height: 1.45;
+        height: calc(100vh - 150px);
+        overflow-y: auto;
+        padding: 12px 14px;
+        white-space: pre-wrap;
+    }
+
+    @media (max-width: 760px) {
+        .app { padding: 8px 10px; width: min(100% - 20px, 560px); }
+        .bar { font-size: 12px; padding: 8px 12px; }
+        #state { font-size: 19px; margin: 14px 0 8px; }
+        #out { height: calc(100vh - 120px); font-size: 12px; }
+    }
+</style>
+</head>
+<body>
+    <div class="app">
+        <header class="bar">
+            <span><b>PSPULSE</b> // ps4 hosts</span>
+            <span class="bar-chain">lapse chain</span>
+        </header>
+
+        <div id="state">loading lapse chain...</div>
+        <div id="out"></div>
+    </div>
+<script type="module">import "./chain_lapse.js";</script>
+<script>
+// PSPULSE: bounded auto-reload when the primitive gives up.
+// Repeated SSV placement misses mean this page-load heap layout does not
+// suit the groom, and only a fresh load reshuffles it (PS4 WebKit exposes
+// no GC). The chain reports ceiling exhaustion as "attempt-ceiling" in the
+// visible log on both lapse and poops runners; on sight, reload up to 2
+// times, then stop and leave FAILED visible for manual retry.
+// The budget write must verifiably persist, otherwise a broken
+// sessionStorage would loop forever -- fail closed instead.
+// Upstream core.js / chain_*.js are NOT modified.
+(function () {
+    var KEY = "pspulse-slopkit-reloads";
+    var MAX = 2;
+    var WINDOW_MS = 10 * 60 * 1000;
+    var handled = false;
+    function readBudget() {
+        var rec = null;
+        try { rec = JSON.parse(sessionStorage.getItem(KEY) || "null"); } catch (e) { rec = null; }
+        var now = Date.now();
+        if (!rec || typeof rec.n !== "number" || (now - rec.t) > WINDOW_MS) return { n: 0, t: now };
+        return rec;
+    }
+    function spendBudget() {
+        var rec = readBudget();
+        rec.n++;
+        rec.t = Date.now();
+        try {
+            sessionStorage.setItem(KEY, JSON.stringify(rec));
+            var check = JSON.parse(sessionStorage.getItem(KEY) || "null");
+            if (check && check.n === rec.n) return rec;
+        } catch (e) {}
+        return null;
+    }
+    setInterval(function () {
+        try {
+            if (handled) return;
+            var st = document.getElementById("state");
+            if (st && st.className === "ok") {
+                try { sessionStorage.removeItem(KEY); } catch (e) {}
+                handled = true;
+                return;
+            }
+            if (!st || st.textContent.indexOf("FAILED") === -1) return;
+            var out = document.getElementById("out");
+            var txt = out ? out.textContent : "";
+            if (txt.indexOf("attempt-ceiling") === -1) return;
+            handled = true;
+            var rec = spendBudget();
+            if (!rec || rec.n > MAX) return;
+            st.textContent = "heap layout missed -- reloading for a fresh heap (" + rec.n + "/2)...";
+            st.className = "warn";
+            setTimeout(function () { location.reload(); }, 2000);
+        } catch (e) { /* never break the exploit page */ }
+    }, 3000);
+})();
+</script></body>
+</html>
