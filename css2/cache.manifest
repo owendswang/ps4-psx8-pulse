@@ -1,16 +1,14 @@
-CACHE MANIFEST 
-# VERSION 2.3
+CACHE MANIFEST
+# VERSION 2.0
 
-CACHE:
-index5.html
-includes/style.css
 includes/script.js
+includes/style.css
 src/lapse.js
 src/loader.js
-src/main5.js
+src/main.js
 src/misc.js
 src/netctrl.js
-../payloads/goldhen5.bin
+../payloads/goldhen.bin
 src/utils.mjs
 src/worker.js
 src/workers.js
@@ -34,6 +32,3 @@ src/ps4/patches/850.bin
 src/ps4/patches/900.bin
 src/ps4/patches/903.bin
 src/ps4/patches/950.bin
-
-NETWORK: 
-*
