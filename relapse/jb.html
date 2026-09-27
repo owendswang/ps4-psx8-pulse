@@ -135,10 +135,10 @@
       overflow: auto;
       padding: 10px 14px;
       white-space: pre-wrap;
+      margin-bottom: 13px;
     }
 
     #state {
-      margin-bottom: 13px;
       height: 42px;
     }
 
@@ -146,8 +146,23 @@
       height: 132px;
     }
 
-    #msg { display: none; color: #d08a7f; }
+    #msg {
+      display: none;
+      color: #d08a7f;
+      padding: 10px 14px;
+      border: 2px solid #6f63a8;
+      text-align: center;
+      background: #282243;
+      font-size: 20px;
+      font-weight: 700;
+    }
     body.fail #msg { display: block; }
+    body.done #msg {
+          display: block;
+          color: #7fd0a0;
+          letter-spacing: 2px;
+    }
+    body.log #msg { display: none; }
     #state:empty::before { content: "Loading Relapse chain..."; }
     body.done #state:empty::before { content: "GoldHEN Loaded ✔"; }
     body.fail #state:empty::before { content: "Failed to load GoldHEN"; }
@@ -283,7 +298,7 @@
     document.getElementById("UA").innerText += " " + navigator.userAgent;
     var moduleScript = document.createElement("script");
     moduleScript.type = "module";
-    moduleScript.src = "./jb.js?v=10";
+    moduleScript.src = "./jb.js?v=19";
     document.body.appendChild(moduleScript);
 })();
 </script>
