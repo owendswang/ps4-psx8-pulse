@@ -1,5 +1,5 @@
 CACHE MANIFEST 
-# VERSION 2.1
+# VERSION 2.2
 
 CACHE: 
 alert5.js
@@ -12,11 +12,8 @@ payloads.js
 psfree5.js
 send.js
 kpatch/900.elf
-kpatch/9001.elf
-kpatch/900OK.elf
 kpatch/903.elf
 kpatch/950.elf
-kpatch/9501.elf
 lapse/900.js
 lapse/903.js
 lapse/950.js
