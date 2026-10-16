@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# VERSION 2.1
+# VERSION 2.2
 
 CACHE:
 index.html
@@ -29,10 +29,10 @@ module/memtools.mjs
 module/chain.mjs
 module/int64.mjs
 module/mem.mjs
-kpatch/700.elf
-kpatch/850.elf
-kpatch/750.elf
-kpatch/800.elf
+kpatch/700.bin
+kpatch/850.bin
+kpatch/750.bin
+kpatch/800.bin
 ../payloads/app2usb.bin
 ../payloads/appcache-install.bin
 ../payloads/backup.bin

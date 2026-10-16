@@ -1581,9 +1581,7 @@ async function patch_kernel(kbase, kmem, p_ucred, restore_info) {
   kmem.write64(p_ucred.add(0x68), -1); // 0xffffffffffffffff
 
   const buf = await get_patches(patch_elf_loc);
-  // FIXME handle .bss segment properly
-  // assume start of loadable segments is at offset 0x1000
-  const patches = new View1(await buf, 0x1000);
+  const patches = new View1(buf);
   let map_size = patches.size;
   const max_size = 0x10000000;
   if (map_size > max_size) {

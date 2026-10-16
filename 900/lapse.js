@@ -91,7 +91,6 @@ const off_cpuid_to_pcpu = fw_config.off_cpuid_to_pcpu;
 const off_sysent_661 = fw_config.off_sysent_661;
 const jmp_rsi = fw_config.jmp_rsi;
 const patch_elf_loc = fw_config.patch_elf_loc;
-const patch_offset = fw_config.patch_offset;
 
 var nogc = [];
 function malloc(sz) {
@@ -1640,9 +1639,7 @@ async function patch_kernel(kbase, kmem, p_ucred, restore_info) {
     kmem.write64(p_ucred.add(0x68), -1);
 
     const buf = await get_patches(patch_elf_loc);
-    // FIXME handle .bss segment properly
-    // Use patch_offset from fw_config (0x1000 for ELF, 0x0 for raw binary)
-    const patches = new View1(await buf, patch_offset);
+    const patches = new View1(buf);
     let map_size = patches.size;
     const max_size = 0x10000000;
     if (map_size > max_size) {
