@@ -15,11 +15,14 @@ const lines = [];
 let passCount = 0, failCount = 0;
 const params = new URLSearchParams(location.search);
 const STOP_BEFORE_DOUBLE = params.get("stop") === "beforedouble";
+const TELEMETRY = params.get("telemetry") === "1";
 
 function post(tag, detail) {
+    if (!TELEMETRY) return;
     try {
         const x = new XMLHttpRequest();
         x.open("POST", "t", true);
+        x.timeout = 2000;
         x.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
         x.send("PS4-S10&tag=" + encodeURIComponent(tag)
              + "&detail=" + encodeURIComponent(String(detail == null ? "" : detail)));
@@ -398,6 +401,16 @@ let allDone = false;
         const pid = sc(SYS.getpid).i32;
         check("chain-reaches-kernel", pid > 0,
             "pid=" + pid + " uid=" + sc(SYS.getuid).i32);
+
+        try {
+            const uid0 = sc(SYS.getuid).i32;
+            const su0 = sc(SYS.setuid, 0).i32;
+            if (uid0 === 0 || su0 === 0) {
+                mark("ALREADY-ROOT", "getuid=" + uid0 + " setuid(0)=" + su0);
+                state("ALREADY JAILBROKEN -- nothing to do", "ok");
+                return;
+            }
+        } catch (e) {}
 
         const scratchAb = new ArrayBuffer(0x1000); keepAlive.push(scratchAb);
         const scratch = bufAddr(scratchAb);

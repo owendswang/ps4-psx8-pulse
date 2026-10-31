@@ -329,6 +329,7 @@ function failed() {
         giveUp("attempt-ceiling");
         return;
     }
+    releaseAttemptAllocations();
     emit("AUTO-RETRY-AFTER-FAILURE", `attempt=${attemptNumber}`);
     stopped = false;
     retryScheduled = false;
@@ -336,7 +337,7 @@ function failed() {
         try { history.replaceState(null, ""); } catch { }
         attemptNumber++;
         startAttempt();
-    }, AUTO_RETRY_DELAY_MS);
+    }, Math.max(AUTO_RETRY_DELAY_MS, 750));
 }
 
 function releaseAttemptAllocations() {

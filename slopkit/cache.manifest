@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# VERSION 2.2
+# VERSION 2.3
 
 index.html
 run_lapse.html
@@ -11,6 +11,7 @@ mem.js
 int64.js
 ps4_offsets.js
 rpc_worker.js
+patches/1001.bin
 patches/1100.bin
 patches/1150.bin
 patches/1200.bin

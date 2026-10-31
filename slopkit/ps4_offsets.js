@@ -408,6 +408,95 @@ export const PS4 = {
         k_jmp_rsi:                          0x47b31,
         k_kl_lock:                          0xe6c20,  // kernel_base = kl_lock - this
     },
+    "10.01": {
+        fw_status: "state=UNTESTED-on-hardware "
+            + "webkit=addfw-from-decrypted-10.01-modules (15/15 gadgets, 35/35 "
+            + "stubs, both SELFs pass their self_ex_info digest) "
+            + "anchor=findcaller-offline (the same run reproduces 11.50's "
+            + "hardware-verified anchor) "
+            + "kernel=kernel_1001.elf out of the 10.01 PUP (fw 10.010.000 retail), "
+            + "BUILD OUTPUT so file offset == RVA + 0x181000, not the dump rule; "
+            + "mapping fixed by swapgs at RVA 0x1c0 + 18/18 GoldHEN-1001 kernel "
+            + "functions on a prologue "
+            + "kernel_rvas=evf_cv+jmp_rsi-VERIFIED-vs-kernel_1001.elf, "
+            + "sysent_661-cross-derived (GoldHEN 1001 sysent 0x1102d90 + 661*0x30; "
+            + "same arithmetic reproduces the proven 11.00 and 11.50 rows), "
+            + "no-kl_lock-because-lapse "
+            + "kpatch=1001.bin-11/11-sites-hold-a-short-conditional-jump-in-kernel_1001.elf "
+            + "bug=lapse",
+
+        wk_expm1_builtin:                   0x218bb70,
+        wk_JSFunction_m_function:           0x28,
+
+        wk_POP_RDI_RET:                     0x51056,
+        wk_POP_RSI_RET:                     0xbe86,
+        wk_POP_RDX_RET:                     0x1644b2,
+        wk_POP_RCX_RET:                     0x782ab,
+        wk_POP_RAX_RET:                     0xe882,
+        wk_POP_R8_RET:                      0xe881,
+        wk_POP_R9_RET:                      0x947b91,
+        wk_LEAVE_RET:                       0x2ca6c3,
+        wk_MOV_QWORD_PTR_RDI_RAX_RET:       0xc037,
+        wk_PUSH_RDX_POP_RSP_RET:            0x168bc7a,
+        wk_MOV_RDI_RSI_30_CALL:             0x24d28f8,
+        wk_POP_RAX_MOV_RAX_JMP_18:          0xaa6d13,
+        wk_PUSH_RBP_MOV_RBP_RSP_10:         0x830f70,
+        wk_MOV_RDI_RAX_8_CALL_20:           0xdca531,
+        wk_MOV_RDX_RAX_18_CALL_10:          0x68b090,
+
+        pivot_view_sp:                      0x18,
+        wk_ArrayBuffer_m_impl:              0x10,
+        wk_ArrayBuffer_m_contents_m_data:   0x10,
+
+        wk___imp___error:                   0x36d1bf0,
+        k__error:                           0x14f40,
+        wk___imp_pthread_create:            0x36d2b40,
+        k_pthread_create:                   0x29680,
+
+        k_stubs: {
+            3: 0x2bef0,
+            4: 0x2c780,
+            5: 0x2c740,
+            6: 0x2d5f0,
+            20: 0x2b080,
+            23: 0x2c080,
+            24: 0x2c900,
+            25: 0x2bc10,
+            30: 0x2bc90,
+            54: 0x2b0c0,
+            92: 0x2b840,
+            97: 0x2b1f0,
+            98: 0x2ce50,
+            104: 0x2c390,
+            105: 0x2d190,
+            106: 0x2c120,
+            118: 0x2bad0,
+            135: 0x2ba30,
+            240: 0x2c2e0,
+            331: 0x2b3b0,
+            432: 0x2c1c0,
+            466: 0x2d310,
+            487: 0x2afe0,
+            488: 0x2be50,
+            538: 0x2afa0,
+            539: 0x2b820,
+            544: 0x2ca70,
+            545: 0x2d2d0,
+            632: 0x2c7e0,
+            633: 0x2ba10,
+            662: 0x2cf50,
+            663: 0x2b910,
+            664: 0x2b060,
+            666: 0x2d390,
+            669: 0x2b7e0,
+        },
+        k_scan_stage1:                      0x40000,
+        k_scan_stage2:                      0x60000,
+
+        k_evf_cv:                           0x7b5133,
+        k_sysent_661:                       0x110a980,
+        k_jmp_rsi:                          0x68b1,
+    },
 };
 
 // 12.02 IS 12.00 for everything this table describes. The 12.00 block's own
