@@ -1,0 +1,17 @@
+CACHE MANIFEST
+# VERSION 1.0
+
+index.html
+jb.html?log=1&afterglow=run&mode=goldhen
+jb.js
+core.js
+mem.js
+int64.js
+ps4_offsets.js
+afterglow.js
+patchset-1400.bin
+patchset-1352.bin
+../payloads/goldhen.bin
+
+NETWORK:
+*

@@ -148,25 +148,6 @@ margin-top: 12px;
         .credits a { color: #f5f5f5; }
         .credits a:hover, .credits a:focus { color: #a294ff; }
 
-        @media (max-width: 820px) {
-            body { overflow: auto; }
-            .container { justify-content: flex-start; padding: 24px 0 20px; width: calc(100% - 32px); max-width: 560px; }
-            .header-section { padding: 20px 18px 22px; }
-            .header-section::after { display: none; }
-            .main-title { font-size: 44px; }
-            .chain-selector { align-items: flex-start; flex-direction: column; }
-            .chain-options { width: 100%; }
-            .chain-option { flex: 1; }
-            .buttons-grid button { flex-basis: 45%; }
-            .credits-line { display: block; margin: 4px 0; }
-            .credits-line + .credits-line::before { content: ""; }
-        }
-
-        @media (max-width: 430px) {
-            .buttons-grid button { flex-basis: 100%; }
-            .main-title { font-size: 30px; }
-        }
-
         #progress { margin: 0; padding: 0; }
         #msgs2 { border-left: 2px solid #a294ff; color: #a294ff; font-size: 16px; font-weight: 400; line-height: 1.45; min-height: 24px; padding: 4px 10px; text-align: left; }
         #msgs2 h1, #msgs h1 { color: #f5f5f5 !important; font-size: 15px; font-weight: 400; line-height: 1.45; margin: 0; }

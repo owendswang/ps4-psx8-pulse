@@ -265,61 +265,6 @@
         .credits a:focus {
             color: #a294ff;
         }
-
-        @media (max-width: 760px) {
-            .container,
-            .credits {
-                width: calc(100% - 28px);
-            }
-
-            .container {
-                padding-top: 14px;
-            }
-
-            .header-section {
-                padding: 18px;
-            }
-
-            .header-section::after {
-                display: none;
-            }
-
-            .main-title {
-                font-size: 34px;
-            }
-
-            .section-title::before {
-                display: block;
-                float: none;
-                margin-top: 4px;
-            }
-
-            .fw-option {
-                flex-basis: 100%;
-            }
-
-            .nodeplay-banner {
-                display: block;
-            }
-
-            .nodeplay-banner .banner-brand {
-                display: block;
-                margin: 5px 0;
-            }
-
-            .nodeplay-banner .banner-slogan {
-                text-align: left;
-            }
-
-            .credits-line {
-                display: block;
-                margin: 3px 0;
-            }
-
-            .credits-line + .credits-line::before {
-                content: "";
-            }
-        }
     </style>
 </head>
 
@@ -334,9 +279,17 @@
         <div class="version-selection">
             <div class="section-title">Choose Your Firmware Version</div>
             <div class="fw-selector-list">
+                <a class="fw-option" href="afterglow/cache.html">
+                    <div class="fw-option-info">
+                        <div class="fw-option-title">FW 13.52 / 14.00</div>
+                        <div class="fw-option-desc">Slopkit chained with AfterGlow</div>
+                    </div>
+                    <div class="fw-option-version">Offline Slopkit</div>
+                </a>
+
                 <a class="fw-option" href="relapse/cache.html">
                     <div class="fw-option-info">
-                        <div class="fw-option-title">FW 13.02–13.52</div>
+                        <div class="fw-option-title">FW 13.02 – 13.52</div>
                         <div class="fw-option-desc">Slopkit chained with Relapse</div>
                     </div>
                     <div class="fw-option-version">Offline Slopkit</div>
@@ -344,7 +297,7 @@
 
                 <a class="fw-option" href="slopkit/cache.html">
                     <div class="fw-option-info">
-                        <div class="fw-option-title">FW 11.50–13.00</div>
+                        <div class="fw-option-title">FW 11.50 – 13.00</div>
                         <div class="fw-option-desc">Slopkit chained with Lapse and Poops</div>
                     </div>
                     <div class="fw-option-version">Offline Slopkit</div>
@@ -352,7 +305,7 @@
 
                 <a class="fw-option" href="css/version-selector.html">
                     <div class="fw-option-info">
-                        <div class="fw-option-title">FW 6.00–11.02</div>
+                        <div class="fw-option-title">FW 6.00 – 11.02</div>
                         <div class="fw-option-desc">CSSFontFace UAF exploit with Lapse and Poops</div>
                     </div>
                     <div class="fw-option-version">Offline CSSFontFace</div>
@@ -360,7 +313,7 @@
 
                 <a class="fw-option" href="900/version-selector.html">
                     <div class="fw-option-info">
-                        <div class="fw-option-title">FW 9.00–9.60</div>
+                        <div class="fw-option-title">FW 9.00 – 9.60</div>
                         <div class="fw-option-desc">PSFree chained with Lapse for FW 9.xx</div>
                     </div>
                     <div class="fw-option-version">Offline PSFree</div>
@@ -368,7 +321,7 @@
 
                 <a class="fw-option" href="700/version-selector.html">
                     <div class="fw-option-info">
-                        <div class="fw-option-title">FW 7.00–8.52</div>
+                        <div class="fw-option-title">FW 7.00 – 8.52</div>
                         <div class="fw-option-desc">PSFree chained with Lapse for FW 7.xx and 8.xx</div>
                     </div>
                     <div class="fw-option-version">Offline PSFree</div>

@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PlayStation Pulse AfterGlow Host</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html {
+        background: #050706;
+      }
+
+      html,
+      body {
+        min-height: 100%;
+      }
+
+      body {
+        background-color: #050706;
+        background-image: linear-gradient(rgba(115, 245, 166, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(115, 245, 166, 0.03) 1px, transparent 1px);
+        background-size: 32px 32px;
+        color: #f5f5f5;
+        display: flex;
+        flex-direction: column;
+        font: 16px/1.5 "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      .container {
+        display: flex;
+        flex: 1 0 auto;
+        flex-direction: column;
+        justify-content: center;
+        margin: 0 auto;
+        padding: 24px 0 20px;
+        width: calc(100% - 64px);
+        max-width: 1120px;
+      }
+
+      .header-section,
+      .status-container {
+        background: rgba(8, 12, 10, 0.92);
+        border: 1px solid #454545;
+      }
+
+      .header-section {
+        margin-bottom: 12px;
+        padding: 20px 28px 22px;
+        position: relative;
+      }
+
+      .header-section::before {
+        color: #a294ff;
+        content: "●  PS4 / AfterGlow HOST";
+        display: block;
+        font-size: 13px;
+        letter-spacing: 0.12em;
+        margin-bottom: 16px;
+      }
+
+      .header-section::after {
+        color: #828282;
+        content: "SYS / READY   //   AUTO JAILBREAK";
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        position: absolute;
+        right: 28px;
+        top: 21px;
+      }
+
+      .main-title {
+        color: #f5f5f5;
+        font-size: 50px;
+        font-weight: 400;
+        letter-spacing: -0.07em;
+        line-height: 1.05;
+      }
+
+      .main-title::before {
+        color: #a294ff;
+        content: "> ";
+      }
+
+      .subtitle {
+        color: #a294ff;
+        font-size: 16px;
+        margin-top: 12px;
+      }
+
+      .version-info {
+        color: #b5b5b5;
+        font-size: 14px;
+        margin-top: 7px;
+      }
+
+      #UA {
+        color: #828282;
+        display: block;
+        font-size: 12px;
+        margin-top: 7px;
+        word-wrap: break-word;
+      }
+
+      #ramBox {
+        color: #7fd0a0;
+        font-size: 12px;
+        margin-top: 7px;
+        word-wrap: break-word;
+      }
+      .status-container {
+        color: #b5b5b5;
+        padding: 14px 18px;
+      }
+
+      .status-label {
+        border-bottom: 1px solid #454545;
+        color: #b5b5b5;
+        font-size: 14px;
+        letter-spacing: 0.12em;
+        margin-bottom: 12px;
+        padding-bottom: 9px;
+        text-transform: uppercase;
+      }
+
+      #state,
+      #out {
+        background: #080c0a;
+        border: 1px solid #6f63a8;
+        color: #f5f5f5;
+        font: inherit;
+        font-size: 13px;
+        line-height: 1.45;
+        overflow: auto;
+        padding: 10px 14px;
+        white-space: pre-wrap;
+        margin-bottom: 13px;
+      }
+
+      #state {
+        height: 42px;
+      }
+
+      #out {
+        height: 132px;
+      }
+
+      #msg {
+        display: none;
+        color: #d08a7f;
+        padding: 10px 14px;
+        border: 2px solid #6f63a8;
+        text-align: center;
+        background: #282243;
+        font-size: 20px;
+        font-weight: 700;
+      }
+      body.fail #msg {
+        display: block;
+      }
+      body.done #msg {
+        display: block;
+        color: #7fd0a0;
+        letter-spacing: 2px;
+      }
+      body.log #msg {
+        display: none;
+      }
+      #state:empty::before {
+        content: "Loading AfterGlow chain...";
+      }
+      body.done #state:empty::before {
+        content: "DONE";
+      }
+      body.fail #state:empty::before {
+        content: "Exploit failed";
+      }
+      /* The retry notice, raised by jb.js when the chain throws or stalls. */
+      .notice {
+        margin: 1em 0;
+        padding: 0.7em 1em;
+        border: 2px solid #6f63a8;
+        background: #282243;
+        color: #d08a7f;
+        font-size: 16px;
+        font-weight: 700;
+        white-space: normal;
+        word-wrap: break-word;
+      }
+      /* Notices are appended after the log; keep them visible above its scroll. */
+      #out .notice {
+        margin: 0;
+        position: sticky;
+        bottom: 0;
+      }
+      .credits {
+        border-top: 1px solid #454545;
+        color: #b5b5b5;
+        flex: 0 0 auto;
+        font-size: 13px;
+        margin: 0 auto;
+        padding: 8px 20px 10px;
+        text-align: center;
+        width: calc(100% - 64px);
+        max-width: 1120px;
+      }
+
+      .credits a {
+        color: #f5f5f5;
+      }
+
+      .credits a:hover,
+      .credits a:focus {
+        color: #a294ff;
+      }
+
+      .credits-line {
+        display: inline;
+      }
+
+      .credits-line + .credits-line::before {
+        color: #6f63a8;
+        content: "  //  ";
+      }
+
+      .credit-label {
+        color: #b5b5b5;
+      }
+
+      #state.ok,
+      .ok {
+        color: #7fd0a0;
+      }
+      #state.bad,
+      .bad {
+        color: #d08a7f;
+      }
+      #state.warn,
+      .warn {
+        color: #d8c07f;
+      }
+      code {
+        color: #9fb3d0;
+      }
+    </style>
+    <script>
+      if (window.applicationCache && window.applicationCache.status === window.applicationCache.UNCACHED) {
+        window.location.replace("cache.html");
+      }
+    </script>
+  </head>
+
+  <body>
+    <main class="container">
+      <section class="header-section" id="brand">
+        <h1 class="main-title">PlayStation Pulse AfterGlow Host</h1>
+        <p class="subtitle">Offline AfterGlow Auto GoldHEN</p>
+        <p class="version-info">PS4 FW 13.52 / 14.00 GoldHEN v2.4b18.13</p>
+        <p id="UA">Running on:</p>
+        <div id="ramBox">RAM: checking...</div>
+      </section>
+
+      <section class="status-container" id="wrap">
+        <div class="status-label">Exploit output</div>
+        <div id="state"></div>
+        <div id="out"></div>
+        <div id="msg">Restart your console</div>
+      </section>
+    </main>
+
+    <footer class="credits">
+      <div class="credits-line">
+        <span class="credit-label">Premium Game Servers -</span>
+        <a href="https://nodeplay.net/" class="nodeplay-link">NodePlay</a>
+      </div>
+      <div class="credits-line">
+        <span class="credit-label">Author:</span>
+        <a href="https://t.me/sudoBlackArch" class="telegram-link">BlackArch</a>
+        <span style="margin: 0 1rem;">•</span>
+        <span class="credit-label">Telegram:</span>
+        <a href="https://t.me/PlayStation_Pulse" class="credit-link">PlayStation Pulse</a>
+      </div>
+      <div class="credits-line">AfterGlow: well0nez/m0zz</div>
+    </footer>
+    <script>
+      (function () {
+        if (window.applicationCache && window.applicationCache.status === window.applicationCache.UNCACHED) return;
+        document.getElementById("UA").innerText += " " + navigator.userAgent;
+        var moduleScript = document.createElement("script");
+        moduleScript.type = "module";
+        moduleScript.src = "./jb.js";
+        document.body.appendChild(moduleScript);
+      })();
+    </script>
+  </body>
+
+</html>

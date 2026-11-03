@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PlayStation Pulse AfterGlow Host</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      background: #050706;
+    }
+
+    html,
+    body {
+      min-height: 100%;
+    }
+
+    body {
+      background-color: #050706;
+      background-image: linear-gradient(rgba(115, 245, 166, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(115, 245, 166, 0.03) 1px, transparent 1px);
+      background-size: 32px 32px;
+      color: #f5f5f5;
+      display: flex;
+      flex-direction: column;
+      font: 16px/1.5 "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .container {
+      display: flex;
+      flex: 1 0 auto;
+      flex-direction: column;
+      justify-content: center;
+      margin: 0 auto;
+      padding: 24px 0 20px;
+      width: calc(100% - 64px);
+      max-width: 1120px;
+    }
+
+    .header-section,
+    .status-container {
+      background: rgba(8, 12, 10, 0.92);
+      border: 1px solid #454545;
+    }
+
+    .header-section {
+      margin-bottom: 12px;
+      padding: 20px 28px 22px;
+      position: relative;
+    }
+
+    .header-section::before {
+      color: #a294ff;
+      content: "●  PS4 / AfterGlow HOST";
+      display: block;
+      font-size: 13px;
+      letter-spacing: 0.12em;
+      margin-bottom: 16px;
+    }
+
+    .header-section::after {
+      color: #828282;
+      content: "SYS / READY   //   AUTO JAILBREAK";
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      position: absolute;
+      right: 28px;
+      top: 21px;
+    }
+
+    .main-title {
+      color: #f5f5f5;
+      font-size: 50px;
+      font-weight: 400;
+      letter-spacing: -0.07em;
+      line-height: 1.05;
+    }
+
+    .main-title::before {
+      color: #a294ff;
+      content: "> ";
+    }
+
+    .subtitle {
+      color: #a294ff;
+      font-size: 16px;
+      margin-top: 12px;
+    }
+
+    .version-info {
+      color: #b5b5b5;
+      font-size: 14px;
+      margin-top: 7px;
+    }
+
+    #UA {
+      color: #828282;
+      display: block;
+      font-size: 12px;
+      margin-top: 7px;
+      word-wrap: break-word;
+    }
+
+    .status-container {
+      color: #b5b5b5;
+      padding: 14px 18px;
+    }
+
+    .status-label {
+      border-bottom: 1px solid #454545;
+      color: #b5b5b5;
+      font-size: 14px;
+      letter-spacing: 0.12em;
+      margin-bottom: 12px;
+      padding-bottom: 9px;
+      text-transform: uppercase;
+    }
+
+    #console {
+      background: #080c0a;
+      border: 1px solid #6f63a8;
+      color: #f5f5f5;
+      font: inherit;
+      font-size: 13px;
+      line-height: 1.45;
+      height: 132px;
+      overflow: auto;
+      padding: 10px 14px;
+      white-space: pre-wrap;
+    }
+
+    .credits {
+      border-top: 1px solid #454545;
+      color: #b5b5b5;
+      flex: 0 0 auto;
+      font-size: 13px;
+      margin: 0 auto;
+      padding: 8px 20px 10px;
+      text-align: center;
+      width: calc(100% - 64px);
+      max-width: 1120px;
+    }
+
+    .credits a {
+      color: #f5f5f5;
+    }
+
+    .credits a:hover,
+    .credits a:focus {
+      color: #a294ff;
+    }
+
+    .credits-line {
+      display: inline;
+    }
+
+    .credits-line+.credits-line::before {
+      color: #6f63a8;
+      content: "  //  ";
+    }
+
+    .ok {
+      color: #7fd0a0;
+    }
+
+    .bad {
+      color: #d08a7f;
+    }
+
+    .warn {
+      color: #d8c07f;
+    }
+  </style>
+  <script>
+    if (window.applicationCache && window.applicationCache.status === window.applicationCache.UNCACHED) {
+      window.location.replace("cache.html");
+    }
+  </script>
+</head>
+
+<body>
+  <main class="container">
+    <header class="header-section">
+      <h1 class="main-title">PlayStation Pulse AfterGlow Host</h1>
+      <p class="subtitle">Offline Slopkit + AfterGlow Auto GoldHEN</p>
+      <p class="version-info">PS4 FW 13.52 / 14.00 GoldHEN v2.4b18.13</p>
+      <p id="UA">Running on:</p>
+    </header>
+    <section class="status-container">
+      <div class="status-label">Exploit output</div>
+      <pre id="console">Detecting firmware...</pre>
+    </section>
+  </main>
+  <footer class="credits">
+    <div class="credits-line">Premium Game Servers - <a href="https://nodeplay.net/">NodePlay</a></div>
+    <div class="credits-line">Author: <a href="https://t.me/sudoBlackArch">BlackArch</a> • Telegram: <a
+        href="https://t.me/PlayStation_Pulse">PlayStation Pulse</a></div>
+    <div class="credits-line">AfterGlow: well0nez/m0zz</div>
+  </footer>
+<script>
+  (function () {
+    if (window.applicationCache && window.applicationCache.status === window.applicationCache.UNCACHED) return;
+
+    var stateEl = document.getElementById("console");
+    var detEl = document.getElementById("UA");
+    function setState(t, c) { stateEl.textContent = t; stateEl.className = c || ""; }
+    detEl.innerText += " " + navigator.userAgent;
+
+    var params = new URLSearchParams(location.search);
+
+    // Firmwares with measured kernel table — KEEP IN SYNC with ps4_offsets.js
+    var SUPPORTED = { 1352: 1, 1400: 1 };
+
+    var key = null, fwnum = null;
+    var m = /PlayStation\s+4[\/ ](\d+)\.(\d+)/.exec(navigator.userAgent);
+    if (m) {
+      var ms = parseInt(m[2], 16).toString(16);
+      if (ms.length < 2) ms = "0" + ms;
+      key = m[1] + "." + ms;
+      fwnum = parseInt(m[1], 10) * 100 + parseInt(ms, 10);
+    }
+
+    var forced = params.get("force") === "1";
+    var supported = forced || (fwnum !== null && SUPPORTED[fwnum] === 1);
+
+    if (!supported) { setState("UNSUPPORTED FIRMWARE", "bad"); return; }
+
+    var target = "jb.html?log=1&afterglow=run&mode=goldhen";
+    setState("Loading AfterGlow chain...", "warn");
+    location.replace(target);
+  })();
+</script>
+</body>
+
+</html>
