@@ -21,6 +21,7 @@ function showNotice(text) {
     box.className = "notice";
     box.textContent = text;
     (document.getElementById("out") || document.body).appendChild(box);
+    if (outEl) outEl.scrollTop = outEl.scrollHeight;
     document.body.classList.add("fail");
   } catch (e) {}
 }
@@ -223,6 +224,7 @@ if (SHOW_LOG && !SENT_HOME && document.body) document.body.className = "log";
    costs nothing and a reload is enough; a failure after it may leave the
    handles armed, and then only a cold start is safe. */
 function finishUI(ok, ran) {
+  clearInterval(watchdog);
   if (SHOW_LOG || !document.body) return;
   const m = document.getElementById("msg");
   if (m)

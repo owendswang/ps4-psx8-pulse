@@ -117,7 +117,7 @@
       }
       .status-container {
         color: #b5b5b5;
-        padding: 14px 18px;
+        padding: 14px 18px 18px;
       }
 
       .status-label {
@@ -141,11 +141,11 @@
         overflow: auto;
         padding: 10px 14px;
         white-space: pre-wrap;
-        margin-bottom: 13px;
       }
 
       #state {
         height: 42px;
+        margin-bottom: 13px;
       }
 
       #out {
@@ -181,24 +181,6 @@
       }
       body.fail #state:empty::before {
         content: "Exploit failed";
-      }
-      /* The retry notice, raised by jb.js when the chain throws or stalls. */
-      .notice {
-        margin: 1em 0;
-        padding: 0.7em 1em;
-        border: 2px solid #6f63a8;
-        background: #282243;
-        color: #d08a7f;
-        font-size: 16px;
-        font-weight: 700;
-        white-space: normal;
-        word-wrap: break-word;
-      }
-      /* Notices are appended after the log; keep them visible above its scroll. */
-      #out .notice {
-        margin: 0;
-        position: sticky;
-        bottom: 0;
       }
       .credits {
         border-top: 1px solid #454545;
@@ -240,7 +222,8 @@
       }
       #state.bad,
       #state.fail,
-      .bad {
+      .bad,
+      .notice {
         color: #d08a7f;
       }
       #state.warn,
